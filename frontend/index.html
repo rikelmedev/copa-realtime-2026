@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Copa do Mundo 2026 — Placar em Tempo Real</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+  <header>
+    <h1>⚽ Copa do Mundo 2026</h1>
+    <span id="status" class="status offline">Desconectado</span>
+  </header>
+
+  <main>
+    <section class="placar-section">
+      <h2>Placar em Tempo Real</h2>
+      <div class="placar">
+        <div class="time">
+          <span class="nome" id="nomeA">Time A</span>
+          <span class="gols" id="golsA">0</span>
+        </div>
+        <div class="vs">X</div>
+        <div class="time">
+          <span class="gols" id="golsB">0</span>
+          <span class="nome" id="nomeB">Time B</span>
+        </div>
+      </div>
+      <div id="feed" class="feed">
+        <p class="feed-placeholder">Aguardando eventos...</p>
+      </div>
+    </section>
+
+    <section class="analytics-section">
+      <h2>Estatísticas da Partida</h2>
+      <div class="charts">
+        <div class="chart-box">
+          <h3>Posse de Bola (%)</h3>
+          <canvas id="chartPosse"></canvas>
+        </div>
+        <div class="chart-box">
+          <h3>Chutes a Gol</h3>
+          <canvas id="chartChutes"></canvas>
+        </div>
+        <div class="chart-box">
+          <h3>Cartões</h3>
+          <canvas id="chartCartoes"></canvas>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
