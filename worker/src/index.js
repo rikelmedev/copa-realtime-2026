@@ -2,28 +2,38 @@ require('dotenv').config();
 const amqp = require('amqplib');
 const { processEvent } = require('./processors/stats');
 
-async function start() {
-  const connection = await amqp.connect(process.env.RABBITMQ_URL);
-  const channel = await connection.createChannel();
+async function start(retries = 10, delay = 5000) {
+  for (let i = 1; i <= retries; i++) {
+    try {
+      const connection = await amqp.connect(process.env.RABBITMQ_URL);
+      const channel = await connection.createChannel();
 
-  await channel.assertQueue('estatisticas_fila', { durable: true });
-  channel.prefetch(1);
+      await channel.assertQueue('estatisticas_fila', { durable: true });
+      channel.prefetch(1);
 
-  console.log('Worker aguardando eventos na fila: estatisticas_fila');
+      console.log('Worker aguardando eventos na fila: estatisticas_fila');
 
-  channel.consume('estatisticas_fila', async (msg) => {
-    if (!msg) return;
+      channel.consume('estatisticas_fila', async (msg) => {
+        if (!msg) return;
 
-    const event = JSON.parse(msg.content.toString());
-    console.log(`Processando evento: ${event.type} - partida ${event.matchId}`);
+        const event = JSON.parse(msg.content.toString());
+        console.log(`Processando evento: ${event.type} - partida ${event.matchId}`);
 
-    await processEvent(event);
+        await processEvent(event);
 
-    channel.ack(msg);
-  });
+        channel.ack(msg);
+      });
+
+      return;
+    } catch (err) {
+      console.log(`Tentativa ${i}/${retries} falhou. Aguardando ${delay / 1000}s...`);
+      if (i === retries) {
+        console.error('Não foi possível conectar ao RabbitMQ:', err.message);
+        process.exit(1);
+      }
+      await new Promise((res) => setTimeout(res, delay));
+    }
+  }
 }
 
-start().catch((err) => {
-  console.error('Erro ao iniciar worker:', err);
-  process.exit(1);
-});
+start();
