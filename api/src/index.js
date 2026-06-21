@@ -2,6 +2,8 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const eventsRouter = require('./routes/events');
+const { connect } = require('./config/rabbitmq');
+const { startPoller } = require('./jobs/poller');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -15,6 +17,15 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok', service: 'copa-api' });
 });
 
-app.listen(PORT, () => {
-  console.log(`API rodando na porta ${PORT}`);
+async function bootstrap() {
+  await connect();
+  startPoller();
+  app.listen(PORT, () => {
+    console.log(`API rodando na porta ${PORT}`);
+  });
+}
+
+bootstrap().catch((err) => {
+  console.error('Erro ao iniciar API:', err);
+  process.exit(1);
 });
