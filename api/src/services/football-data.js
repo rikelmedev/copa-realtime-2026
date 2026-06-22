@@ -2,8 +2,7 @@ const https = require('https');
 
 const BASE_URL = process.env.FOOTBALL_API_URL || 'https://api.football-data.org/v4';
 const API_KEY = process.env.FOOTBALL_API_KEY;
-
-const COMPETITION_ID = 2000; // FIFA World Cup
+const COMPETITION_ID = process.env.COMPETITION_ID || 2000;
 
 function get(path) {
   return new Promise((resolve, reject) => {
