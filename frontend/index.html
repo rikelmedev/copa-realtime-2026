@@ -3,56 +3,233 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Copa do Mundo 2026 — Placar em Tempo Real</title>
+  <title>Copa do Mundo 2026 — Ao Vivo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
-  <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
 
-  <header>
-    <h1>⚽ Copa do Mundo 2026</h1>
-    <span id="status" class="status offline">Desconectado</span>
-  </header>
-
-  <main>
-    <section class="placar-section">
-      <h2>Placar em Tempo Real</h2>
-      <div class="placar">
-        <div class="time">
-          <span class="nome" id="nomeA">Time A</span>
-          <span class="gols" id="golsA">0</span>
+  <!-- TOP BAR -->
+  <div class="top-bar">
+    <div class="top-bar__inner">
+      <div class="top-bar__competition">
+        <span class="top-bar__trophy">🏆</span>
+        <span class="top-bar__name">FIFA Copa do Mundo 2026</span>
+        <span class="top-bar__divider">·</span>
+        <span class="top-bar__venue" id="matchVenue">Estádio a confirmar</span>
+      </div>
+      <div class="top-bar__right">
+        <span class="top-bar__date" id="matchDate"></span>
+        <div class="live-badge" id="liveBadge">
+          <span class="live-badge__dot"></span>
+          <span>AO VIVO</span>
         </div>
-        <div class="vs">X</div>
-        <div class="time">
-          <span class="gols" id="golsB">0</span>
-          <span class="nome" id="nomeB">Time B</span>
+        <div class="connection-status" id="connectionStatus">
+          <span class="connection-status__dot offline"></span>
+          <span id="connectionLabel">Desconectado</span>
         </div>
       </div>
-      <div id="feed" class="feed">
-        <p class="feed-placeholder">Aguardando eventos...</p>
+    </div>
+  </div>
+
+  <!-- SCORE HERO -->
+  <section class="score-hero">
+    <div class="score-hero__inner">
+
+      <div class="team team--home">
+        <div class="team__flag" id="flagA">🏳️</div>
+        <div class="team__info">
+          <span class="team__code" id="codeA">TIME A</span>
+          <span class="team__name" id="nameA">Selecionar</span>
+        </div>
+        <div class="team__score" id="scoreA">0</div>
+      </div>
+
+      <div class="score-hero__center">
+        <div class="match-time">
+          <span class="match-time__minute" id="matchMinute">0'</span>
+          <span class="match-time__label">1º TEMPO</span>
+        </div>
+        <div class="score-hero__separator">–</div>
+        <div class="last-scorers">
+          <div class="scorers scorers--home" id="scorersA"></div>
+          <div class="scorers scorers--away" id="scorersB"></div>
+        </div>
+      </div>
+
+      <div class="team team--away">
+        <div class="team__score" id="scoreB">0</div>
+        <div class="team__info">
+          <span class="team__code" id="codeB">TIME B</span>
+          <span class="team__name" id="nameB">Selecionar</span>
+        </div>
+        <div class="team__flag" id="flagB">🏳️</div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- EVENT TIMELINE -->
+  <div class="timeline-wrap">
+    <div class="timeline">
+      <div class="timeline__track" id="timelineTrack">
+        <div class="timeline__bar">
+          <div class="timeline__progress" id="timelineProgress"></div>
+        </div>
+        <div class="timeline__events" id="timelineEvents"></div>
+        <div class="timeline__labels">
+          <span>0'</span><span>15'</span><span>30'</span><span>45'</span>
+          <span>60'</span><span>75'</span><span>90'</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN CONTENT -->
+  <main class="main-grid">
+
+    <!-- FEED AO VIVO -->
+    <section class="feed-section">
+      <div class="section-header">
+        <h2 class="section-title">Narração ao Vivo</h2>
+        <span class="section-badge" id="eventCount">0 eventos</span>
+      </div>
+      <div class="feed" id="feed">
+        <div class="feed__empty">
+          <span class="feed__empty-icon">📡</span>
+          <p>Aguardando eventos da partida...</p>
+        </div>
       </div>
     </section>
 
-    <section class="analytics-section">
-      <h2>Estatísticas da Partida</h2>
-      <div class="charts">
-        <div class="chart-box">
-          <h3>Posse de Bola (%)</h3>
-          <canvas id="chartPosse"></canvas>
+    <!-- ESTATÍSTICAS -->
+    <aside class="stats-section">
+      <div class="section-header">
+        <h2 class="section-title">Estatísticas</h2>
+      </div>
+
+      <!-- Posse de bola -->
+      <div class="stat-card">
+        <div class="stat-card__header">
+          <span class="stat-card__label">Posse de Bola</span>
         </div>
-        <div class="chart-box">
-          <h3>Chutes a Gol</h3>
-          <canvas id="chartChutes"></canvas>
-        </div>
-        <div class="chart-box">
-          <h3>Cartões</h3>
-          <canvas id="chartCartoes"></canvas>
+        <div class="stat-bar-wrap">
+          <span class="stat-bar__val stat-bar__val--home" id="posseA">50%</span>
+          <div class="stat-bar">
+            <div class="stat-bar__fill stat-bar__fill--home" id="posseBarA" style="width:50%"></div>
+            <div class="stat-bar__fill stat-bar__fill--away" id="posseBarB" style="width:50%"></div>
+          </div>
+          <span class="stat-bar__val stat-bar__val--away" id="posseB">50%</span>
         </div>
       </div>
-    </section>
+
+      <!-- Finalizações -->
+      <div class="stat-card">
+        <div class="stat-card__header">
+          <span class="stat-card__label">Finalizações</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-row__val team-color-a" id="chutesA">0</span>
+          <div class="stat-row__bars">
+            <div class="stat-row__bar-wrap stat-row__bar-wrap--home">
+              <div class="stat-row__bar stat-row__bar--home" id="chuteBarA" style="width:0%"></div>
+            </div>
+            <div class="stat-row__bar-wrap stat-row__bar-wrap--away">
+              <div class="stat-row__bar stat-row__bar--away" id="chuteBarB" style="width:0%"></div>
+            </div>
+          </div>
+          <span class="stat-row__val team-color-b" id="chutesB">0</span>
+        </div>
+      </div>
+
+      <!-- No gol -->
+      <div class="stat-card">
+        <div class="stat-card__header">
+          <span class="stat-card__label">Chutes no Gol</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-row__val team-color-a" id="noGolA">0</span>
+          <div class="stat-row__bars">
+            <div class="stat-row__bar-wrap stat-row__bar-wrap--home">
+              <div class="stat-row__bar stat-row__bar--home" id="noGolBarA" style="width:0%"></div>
+            </div>
+            <div class="stat-row__bar-wrap stat-row__bar-wrap--away">
+              <div class="stat-row__bar stat-row__bar--away" id="noGolBarB" style="width:0%"></div>
+            </div>
+          </div>
+          <span class="stat-row__val team-color-b" id="noGolB">0</span>
+        </div>
+      </div>
+
+      <!-- Cartões -->
+      <div class="stat-card">
+        <div class="stat-card__header">
+          <span class="stat-card__label">Cartões</span>
+        </div>
+        <div class="cards-row">
+          <div class="cards-team">
+            <span class="cards-team__flag" id="flagCardA">🏳️</span>
+            <span class="card-icon card-icon--yellow" id="amarelosA">0 🟨</span>
+            <span class="card-icon card-icon--red" id="vermelhosA">0 🟥</span>
+          </div>
+          <div class="cards-divider"></div>
+          <div class="cards-team cards-team--away">
+            <span class="card-icon card-icon--yellow" id="amarelosB">🟨 0</span>
+            <span class="card-icon card-icon--red" id="vermelhosB">🟥 0</span>
+            <span class="cards-team__flag" id="flagCardB">🏳️</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Faltas -->
+      <div class="stat-card">
+        <div class="stat-card__header">
+          <span class="stat-card__label">Faltas</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-row__val team-color-a" id="faltasA">0</span>
+          <div class="stat-row__bars">
+            <div class="stat-row__bar-wrap stat-row__bar-wrap--home">
+              <div class="stat-row__bar stat-row__bar--home" id="faltaBarA" style="width:0%"></div>
+            </div>
+            <div class="stat-row__bar-wrap stat-row__bar-wrap--away">
+              <div class="stat-row__bar stat-row__bar--away" id="faltaBarB" style="width:0%"></div>
+            </div>
+          </div>
+          <span class="stat-row__val team-color-b" id="faltasB">0</span>
+        </div>
+      </div>
+
+    </aside>
   </main>
 
+  <!-- ANALYTICS COMPLETO -->
+  <section class="analytics-section">
+    <div class="analytics-section__inner">
+      <div class="section-header">
+        <h2 class="section-title">Analytics da Partida</h2>
+      </div>
+      <div class="analytics-grid">
+        <div class="chart-card">
+          <h3 class="chart-card__title">Posse ao Longo do Tempo</h3>
+          <canvas id="chartPosseTempo"></canvas>
+        </div>
+        <div class="chart-card">
+          <h3 class="chart-card__title">Finalizações por Período</h3>
+          <canvas id="chartChutes"></canvas>
+        </div>
+        <div class="chart-card">
+          <h3 class="chart-card__title">Distribuição de Eventos</h3>
+          <canvas id="chartEventos"></canvas>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
