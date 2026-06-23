@@ -58,4 +58,24 @@ function normalizeMatch(match) {
   };
 }
 
-module.exports = { getLiveMatches, getMatch, normalizeMatch };
+async function getUpcomingMatches(limit = 20) {
+  const data = await get(`/competitions/${COMPETITION_ID}/matches?status=SCHEDULED`);
+  return (data.matches || []).slice(0, limit);
+}
+
+async function getStandings() {
+  const data = await get(`/competitions/${COMPETITION_ID}/standings`);
+  return data.standings || [];
+}
+
+async function getScorers(limit = 15) {
+  const data = await get(`/competitions/${COMPETITION_ID}/scorers?limit=${limit}`);
+  return data.scorers || [];
+}
+
+async function getAllMatches() {
+  const data = await get(`/competitions/${COMPETITION_ID}/matches`);
+  return data.matches || [];
+}
+
+module.exports = { getLiveMatches, getMatch, normalizeMatch, getUpcomingMatches, getStandings, getScorers, getAllMatches };
