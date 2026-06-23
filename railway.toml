@@ -1,0 +1,33 @@
+[build]
+builder = "dockerfile"
+
+[[services]]
+name = "api"
+source = "api"
+dockerfile = "Dockerfile"
+
+[services.variables]
+PORT = "3000"
+RABBITMQ_URL = "${RABBITMQ_URL}"
+REDIS_URL = "${REDIS_URL}"
+FOOTBALL_API_KEY = "${FOOTBALL_API_KEY}"
+FOOTBALL_API_URL = "https://api.football-data.org/v4"
+COMPETITION_ID = "${COMPETITION_ID}"
+
+[[services]]
+name = "ws-server"
+source = "ws-server"
+dockerfile = "Dockerfile"
+
+[services.variables]
+WS_PORT = "3001"
+REDIS_URL = "${REDIS_URL}"
+
+[[services]]
+name = "worker"
+source = "worker"
+dockerfile = "Dockerfile"
+
+[services.variables]
+RABBITMQ_URL = "${RABBITMQ_URL}"
+DATABASE_URL = "${DATABASE_URL}"
