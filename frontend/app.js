@@ -229,7 +229,7 @@ function renderScorers(scorers) {
             ${crestImg(s.team.crest, s.team.tla)}
             <span>${s.team.tla || s.team.name}</span>
           </div>
-          <span class="scorer-goals">${s.goals ?? 0}</span>
+          <span class="scorer-goals">${s.goals ?? s.numberOfGoals ?? 0}</span>
           <span class="scorer-assists">${s.assists ?? '—'}</span>
           <span class="scorer-pen">${s.penalties ?? '—'}</span>
         </div>`).join('')}
@@ -254,7 +254,7 @@ async function loadAll() {
 
       const todayGames = matches.filter((m) => isToday(m.utcDate));
       const upcoming = matches
-        .filter((m) => new Date(m.utcDate) > now && !isToday(m.utcDate))
+        .filter((m) => new Date(m.utcDate) > now && !isToday(m.utcDate) && m.homeTeam?.name && m.awayTeam?.name)
         .slice(0, 40);
       const recent = matches
         .filter((m) => m.status === 'FINISHED')
