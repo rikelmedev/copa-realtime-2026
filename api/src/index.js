@@ -4,6 +4,7 @@ const cors = require('cors');
 const eventsRouter = require('./routes/events');
 const { connect } = require('./config/rabbitmq');
 const { startPoller } = require('./jobs/poller');
+const { startConsumer } = require('./jobs/consumer');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -20,6 +21,7 @@ app.get('/health', (req, res) => {
 async function bootstrap() {
   await connect();
   startPoller();
+  startConsumer();
   app.listen(PORT, () => {
     console.log(`API rodando na porta ${PORT}`);
   });
