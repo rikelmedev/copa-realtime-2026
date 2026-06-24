@@ -53,4 +53,14 @@ router.get('/scorers', async (req, res) => {
   }
 });
 
+router.get('/matches/:id', async (req, res) => {
+  try {
+    const { getMatch } = require('../services/football-data');
+    const match = await getMatch(req.params.id);
+    res.json(match);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 module.exports = router;

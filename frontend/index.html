@@ -96,6 +96,14 @@
 
   </main>
 
+  <!-- Match Detail Modal -->
+  <div id="matchModal" class="modal-overlay" onclick="closeModal(event)">
+    <div class="modal">
+      <button class="modal__close" onclick="document.getElementById('matchModal').classList.remove('show')">✕</button>
+      <div id="modalContent"></div>
+    </div>
+  </div>
+
   <div id="golOverlay" class="gol-overlay">
     <div class="gol-overlay__content">
       <div class="gol-overlay__text">GOL!</div>
