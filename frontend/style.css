@@ -902,11 +902,39 @@ img { display: inline-block; vertical-align: middle; }
   margin-top: 0.3rem;
 }
 
-.md-venue {
-  text-align: center;
-  font-size: 0.68rem;
+.md-team--winner .md-tla { color: var(--gold); }
+.md-team--winner .md-crest { filter: drop-shadow(0 2px 12px rgba(255,215,0,0.4)); }
+
+/* Info grid */
+.md-info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 0;
+  border-top: 1px solid var(--border);
+}
+
+.md-info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.9rem 1.25rem;
+  border-right: 1px solid var(--border);
+}
+
+.md-info-item:last-child { border-right: none; }
+
+.md-info-label {
+  font-size: 0.6rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
   color: var(--text-3);
-  margin-top: 0.75rem;
+}
+
+.md-info-value {
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--text-1);
 }
 
 /* Sections */
