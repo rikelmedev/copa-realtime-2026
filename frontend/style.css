@@ -961,6 +961,11 @@ img { display: inline-block; vertical-align: middle; }
   font-size: 0.85rem;
 }
 
+.md-loading-events {
+  padding: 1.5rem;
+  border-top: none;
+}
+
 /* Goals */
 .md-goals {
   display: grid;
