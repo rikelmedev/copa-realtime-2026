@@ -236,6 +236,84 @@ function renderScorers(scorers) {
     </div>`;
 }
 
+// ─── Hero Card ────────────────────────────────────────────────────────────────
+let countdownInterval = null;
+
+function renderHero(liveMatches, allMatches) {
+  const el = document.getElementById('hero');
+  const now = new Date();
+
+  // Priority: live match → next game today → next upcoming game
+  let match = liveMatches[0];
+  let mode = 'live';
+
+  if (!match) {
+    const next = allMatches
+      .filter((m) => new Date(m.utcDate) > now && m.homeTeam?.name && m.awayTeam?.name)
+      .sort((a, b) => new Date(a.utcDate) - new Date(b.utcDate))[0];
+    if (next) { match = next; mode = 'upcoming'; }
+  }
+
+  if (!match) { el.innerHTML = ''; return; }
+
+  const h = match.score?.fullTime?.home ?? match.score?.halfTime?.home ?? 0;
+  const a = match.score?.fullTime?.away ?? match.score?.halfTime?.away ?? 0;
+  const matchDate = new Date(match.utcDate);
+  const isLive = mode === 'live';
+  const stage = match.stage ? match.stage.replace(/_/g, ' ') : 'Copa do Mundo 2026';
+
+  el.innerHTML = `
+    <div class="hero ${isLive ? 'hero--live' : 'hero--upcoming'}">
+      <div class="hero__label">
+        ${isLive ? `<span class="live-dot"></span> AO VIVO` : `Copa do Mundo 2026 · ${stage}`}
+      </div>
+      <div class="hero__body">
+        <div class="hero__team">
+          <img class="hero__crest" src="${match.homeTeam.crest}" alt="${match.homeTeam.tla}" onerror="this.style.display='none'" />
+          <span class="hero__tla">${match.homeTeam.tla}</span>
+          <span class="hero__name">${match.homeTeam.shortName || match.homeTeam.name}</span>
+        </div>
+
+        <div class="hero__center">
+          ${isLive ? `
+            <div class="hero__score">
+              <span>${h}</span>
+              <span class="hero__sep">:</span>
+              <span>${a}</span>
+            </div>
+            <div class="hero__minute">${match.minute || '—'}'</div>
+          ` : `
+            <div class="hero__vs">VS</div>
+            <div class="hero__time">${formatTime(match.utcDate)}</div>
+            <div class="hero__countdown" id="heroCountdown"></div>
+          `}
+        </div>
+
+        <div class="hero__team hero__team--away">
+          <img class="hero__crest" src="${match.awayTeam.crest}" alt="${match.awayTeam.tla}" onerror="this.style.display='none'" />
+          <span class="hero__tla">${match.awayTeam.tla}</span>
+          <span class="hero__name">${match.awayTeam.shortName || match.awayTeam.name}</span>
+        </div>
+      </div>
+      ${match.venue ? `<div class="hero__venue">📍 ${match.venue}</div>` : ''}
+    </div>`;
+
+  if (!isLive) {
+    if (countdownInterval) clearInterval(countdownInterval);
+    function tick() {
+      const diff = matchDate - new Date();
+      if (diff <= 0) { clearInterval(countdownInterval); return; }
+      const h = Math.floor(diff / 3600000);
+      const m = Math.floor((diff % 3600000) / 60000);
+      const s = Math.floor((diff % 60000) / 1000);
+      const el = document.getElementById('heroCountdown');
+      if (el) el.textContent = `${h}h ${String(m).padStart(2,'0')}m ${String(s).padStart(2,'0')}s`;
+    }
+    tick();
+    countdownInterval = setInterval(tick, 1000);
+  }
+}
+
 // ─── Load All Data ────────────────────────────────────────────────────────────
 async function loadAll() {
   try {
@@ -246,10 +324,14 @@ async function loadAll() {
       fetchAPI('/api/scorers'),
     ]);
 
-    if (live.status === 'fulfilled') renderLiveMatches(live.value);
+    const liveData = live.status === 'fulfilled' ? live.value : [];
+    const allData  = allMatches.status === 'fulfilled' ? allMatches.value : [];
+
+    renderHero(liveData, allData);
+    renderLiveMatches(liveData);
 
     if (allMatches.status === 'fulfilled') {
-      const matches = allMatches.value;
+      const matches = allData;
       const now = new Date();
 
       const todayGames = matches.filter((m) => isToday(m.utcDate));
