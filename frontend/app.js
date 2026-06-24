@@ -384,18 +384,25 @@ async function openMatchModal(matchId) {
   }
 
   try {
-    const m = await fetchAPI(`/api/matches/${matchId}`);
-    const goals = m.goals || [];
-    const bookings = m.bookings || [];
-    const subs = m.substitutions || [];
-    const homeId = m.homeTeam?.id;
+    const home = cached?.homeTeam?.name || '';
+    const away = cached?.awayTeam?.name || '';
+    const date = cached?.utcDate || '';
+    const events = await fetchAPI(
+      `/api/match-events?home=${encodeURIComponent(home)}&away=${encodeURIComponent(away)}&date=${encodeURIComponent(date)}`
+    );
+    const m = cached || {};
+    const goals = events.goals || [];
+    const bookings = events.bookings || [];
+    const subs = events.substitutions || [];
+    const homeName = (m.homeTeam?.name || '').toLowerCase();
+    const isHome = (e) => (e.team?.name || '').toLowerCase().includes(homeName.split(' ')[0]);
 
-    const homeGoals    = goals.filter((g) => g.team?.id === homeId);
-    const awayGoals    = goals.filter((g) => g.team?.id !== homeId);
-    const homeBookings = bookings.filter((b) => b.team?.id === homeId);
-    const awayBookings = bookings.filter((b) => b.team?.id !== homeId);
-    const homeSubs     = subs.filter((s) => s.team?.id === homeId);
-    const awaySubs     = subs.filter((s) => s.team?.id !== homeId);
+    const homeGoals    = goals.filter(isHome);
+    const awayGoals    = goals.filter((g) => !isHome(g));
+    const homeBookings = bookings.filter(isHome);
+    const awayBookings = bookings.filter((b) => !isHome(b));
+    const homeSubs     = subs.filter(isHome);
+    const awaySubs     = subs.filter((s) => !isHome(s));
     const homeYellow   = homeBookings.filter((b) => b.card === 'YELLOW_CARD').length;
     const homeRed      = homeBookings.filter((b) => b.card === 'RED_CARD').length;
     const awayYellow   = awayBookings.filter((b) => b.card === 'YELLOW_CARD').length;

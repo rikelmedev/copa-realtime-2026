@@ -63,4 +63,18 @@ router.get('/matches/:id', async (req, res) => {
   }
 });
 
+router.get('/match-events', async (req, res) => {
+  try {
+    const { home, away, date } = req.query;
+    if (!home || !away || !date) {
+      return res.status(400).json({ error: 'home, away e date são obrigatórios' });
+    }
+    const { getMatchEvents } = require('../services/api-football');
+    const events = await getMatchEvents(home, away, date);
+    res.json(events);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 module.exports = router;
