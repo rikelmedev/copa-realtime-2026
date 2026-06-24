@@ -370,17 +370,112 @@ function closeModal(e) {
   if (e.target.id === 'matchModal') document.getElementById('matchModal').classList.remove('show');
 }
 
-function openMatchModal(matchId) {
+async function openMatchModal(matchId) {
   const modal = document.getElementById('matchModal');
   const content = document.getElementById('modalContent');
   modal.classList.add('show');
 
-  const m = matchCache[matchId];
-  if (!m) {
-    content.innerHTML = '<div class="md-empty">Partida não encontrada</div>';
-    return;
+  // Show cached header immediately while fetching detail
+  const cached = matchCache[matchId];
+  if (!cached) {
+    content.innerHTML = '<div class="modal-loading">Carregando detalhes...</div>';
+  } else {
+    content.innerHTML = buildModalHead(cached) + '<div class="modal-loading md-loading-events">Carregando eventos...</div>';
   }
 
+  try {
+    const m = await fetchAPI(`/api/matches/${matchId}`);
+    const goals = m.goals || [];
+    const bookings = m.bookings || [];
+    const subs = m.substitutions || [];
+    const homeId = m.homeTeam?.id;
+
+    const homeGoals    = goals.filter((g) => g.team?.id === homeId);
+    const awayGoals    = goals.filter((g) => g.team?.id !== homeId);
+    const homeBookings = bookings.filter((b) => b.team?.id === homeId);
+    const awayBookings = bookings.filter((b) => b.team?.id !== homeId);
+    const homeSubs     = subs.filter((s) => s.team?.id === homeId);
+    const awaySubs     = subs.filter((s) => s.team?.id !== homeId);
+    const homeYellow   = homeBookings.filter((b) => b.card === 'YELLOW_CARD').length;
+    const homeRed      = homeBookings.filter((b) => b.card === 'RED_CARD').length;
+    const awayYellow   = awayBookings.filter((b) => b.card === 'YELLOW_CARD').length;
+    const awayRed      = awayBookings.filter((b) => b.card === 'RED_CARD').length;
+
+    function goalItem(g) {
+      const extra = g.type === 'PENALTY' ? ' (P)' : g.type === 'OWN_GOAL' ? ' (CG)' : '';
+      return `<div class="mg-item">
+        <span class="mg-name">${g.scorer?.name || 'Gol'}${extra}</span>
+        <span class="mg-min">${g.minute}'</span>
+        ${g.assist?.name ? `<span class="mg-assist">Ass: ${g.assist.name}</span>` : ''}
+      </div>`;
+    }
+
+    content.innerHTML = buildModalHead(m) + `
+      ${goals.length ? `
+      <div class="md-section">
+        <div class="md-section-title">⚽ Gols</div>
+        <div class="md-goals">
+          <div class="md-goals-col">${homeGoals.map(goalItem).join('') || '<span class="md-none">—</span>'}</div>
+          <div class="md-goals-sep"></div>
+          <div class="md-goals-col md-goals-col--away">${awayGoals.map(goalItem).join('') || '<span class="md-none">—</span>'}</div>
+        </div>
+      </div>` : ''}
+
+      ${bookings.length ? `
+      <div class="md-section">
+        <div class="md-section-title">🟨 Cartões</div>
+        <div class="md-cards-summary">
+          <div class="md-cards-team">
+            <span>${homeYellow > 0 ? `🟨 ×${homeYellow}` : ''} ${homeRed > 0 ? `🟥 ×${homeRed}` : ''}</span>
+            <div class="md-cards-list">${homeBookings.map((b) => `
+              <div class="md-card-item">
+                <span>${b.card === 'RED_CARD' ? '🟥' : '🟨'}</span>
+                <span class="md-card-player">${b.player?.name || '—'}</span>
+                <span class="md-card-min">${b.minute}'</span>
+              </div>`).join('')}
+            </div>
+          </div>
+          <div class="md-cards-team md-cards-team--away">
+            <span>${awayYellow > 0 ? `🟨 ×${awayYellow}` : ''} ${awayRed > 0 ? `🟥 ×${awayRed}` : ''}</span>
+            <div class="md-cards-list">${awayBookings.map((b) => `
+              <div class="md-card-item">
+                <span>${b.card === 'RED_CARD' ? '🟥' : '🟨'}</span>
+                <span class="md-card-player">${b.player?.name || '—'}</span>
+                <span class="md-card-min">${b.minute}'</span>
+              </div>`).join('')}
+            </div>
+          </div>
+        </div>
+      </div>` : ''}
+
+      ${subs.length ? `
+      <div class="md-section">
+        <div class="md-section-title">🔄 Substituições</div>
+        <div class="md-subs">
+          <div class="md-subs-col">
+            ${homeSubs.map((s) => `<div class="md-sub-item">
+              <span class="md-sub-min">${s.minute}'</span>
+              <span class="md-sub-in">▲ ${s.playerIn?.name || '—'}</span>
+              <span class="md-sub-out">▼ ${s.playerOut?.name || '—'}</span>
+            </div>`).join('')}
+          </div>
+          <div class="md-subs-col md-subs-col--away">
+            ${awaySubs.map((s) => `<div class="md-sub-item">
+              <span class="md-sub-min">${s.minute}'</span>
+              <span class="md-sub-in">▲ ${s.playerIn?.name || '—'}</span>
+              <span class="md-sub-out">▼ ${s.playerOut?.name || '—'}</span>
+            </div>`).join('')}
+          </div>
+        </div>
+      </div>` : ''}
+    `;
+  } catch (err) {
+    const base = cached ? buildModalHead(cached) : '';
+    content.innerHTML = base + `<div class="md-empty">Não foi possível carregar os eventos</div>`;
+  }
+}
+
+function buildModalHead(m) {
   const ftH = m.score?.fullTime?.home ?? 0;
   const ftA = m.score?.fullTime?.away ?? 0;
   const htH = m.score?.halfTime?.home;
@@ -392,7 +487,7 @@ function openMatchModal(matchId) {
   const awayWon = winner === 'AWAY_TEAM';
   const mainRef = m.referees?.find((r) => r.type === 'REFEREE') || m.referees?.[0];
 
-  content.innerHTML = `
+  return `
     <div class="md-head">
       <div class="md-meta">${formatDate(m.utcDate)}${group} · ${stage}</div>
       <div class="md-scoreboard">
@@ -414,28 +509,24 @@ function openMatchModal(matchId) {
         </div>
       </div>
     </div>
-
     <div class="md-info-grid">
       <div class="md-info-item">
         <span class="md-info-label">Rodada</span>
         <span class="md-info-value">Rodada ${m.matchday}</span>
       </div>
-      ${m.venue ? `
-      <div class="md-info-item">
+      ${m.venue ? `<div class="md-info-item">
         <span class="md-info-label">Estádio</span>
         <span class="md-info-value">📍 ${m.venue}</span>
       </div>` : ''}
-      ${mainRef ? `
-      <div class="md-info-item">
+      ${mainRef ? `<div class="md-info-item">
         <span class="md-info-label">Árbitro</span>
-        <span class="md-info-value">🏳 ${mainRef.name}${mainRef.nationality ? ` (${mainRef.nationality})` : ''}</span>
+        <span class="md-info-value">${mainRef.name}${mainRef.nationality ? ` (${mainRef.nationality})` : ''}</span>
       </div>` : ''}
       <div class="md-info-item">
         <span class="md-info-label">Resultado</span>
         <span class="md-info-value">${winner === 'HOME_TEAM' ? `Vitória ${m.homeTeam.tla}` : winner === 'AWAY_TEAM' ? `Vitória ${m.awayTeam.tla}` : 'Empate'}</span>
       </div>
-    </div>
-  `;
+    </div>`;
 }
 
 // ─── Tabs ─────────────────────────────────────────────────────────────────────
