@@ -366,89 +366,135 @@ function closeModal(e) {
 async function openMatchModal(matchId) {
   const modal = document.getElementById('matchModal');
   const content = document.getElementById('modalContent');
-  content.innerHTML = '<div class="modal-loading">Carregando...</div>';
+  content.innerHTML = '<div class="modal-loading">Carregando detalhes...</div>';
   modal.classList.add('show');
 
   try {
     const m = await fetchAPI(`/api/matches/${matchId}`);
-    const h = m.score?.fullTime?.home ?? 0;
-    const a = m.score?.fullTime?.away ?? 0;
+    const ftH = m.score?.fullTime?.home ?? 0;
+    const ftA = m.score?.fullTime?.away ?? 0;
+    const htH = m.score?.halfTime?.home;
+    const htA = m.score?.halfTime?.away;
     const goals = m.goals || [];
     const bookings = m.bookings || [];
+    const subs = m.substitutions || [];
     const stage = m.stage ? m.stage.replace(/_/g, ' ') : 'Copa do Mundo 2026';
+    const homeId = m.homeTeam?.id;
 
-    // Build events timeline (goals + cards sorted by minute)
-    const events = [
-      ...goals.map((g) => ({ ...g, kind: 'goal' })),
+    const homeGoals    = goals.filter((g) => g.team?.id === homeId);
+    const awayGoals    = goals.filter((g) => g.team?.id !== homeId);
+    const homeBookings = bookings.filter((b) => b.team?.id === homeId);
+    const awayBookings = bookings.filter((b) => b.team?.id !== homeId);
+    const homeSubs     = subs.filter((s) => s.team?.id === homeId);
+    const awaySubs     = subs.filter((s) => s.team?.id !== homeId);
+    const homeYellow   = homeBookings.filter((b) => b.card === 'YELLOW_CARD').length;
+    const homeRed      = homeBookings.filter((b) => b.card === 'RED_CARD').length;
+    const awayYellow   = awayBookings.filter((b) => b.card === 'YELLOW_CARD').length;
+    const awayRed      = awayBookings.filter((b) => b.card === 'RED_CARD').length;
+
+    const allEvents = [
+      ...goals.map((g)    => ({ ...g, kind: 'goal' })),
       ...bookings.map((b) => ({ ...b, kind: 'card' })),
+      ...subs.map((s)     => ({ ...s, kind: 'sub'  })),
     ].sort((x, y) => (x.minute || 0) - (y.minute || 0));
 
-    const homeGoals = goals.filter((g) => g.team?.id === m.homeTeam?.id);
-    const awayGoals = goals.filter((g) => g.team?.id === m.awayTeam?.id);
+    function goalItem(g) {
+      const extra = g.type === 'PENALTY' ? ' (P)' : g.type === 'OWN_GOAL' ? ' (CG)' : '';
+      return `<div class="mg-item">
+        <span class="mg-name">${g.scorer?.name || 'Gol'}${extra}</span>
+        <span class="mg-min">${g.minute}'</span>
+        ${g.assist?.name ? `<span class="mg-assist">Ass: ${g.assist.name}</span>` : ''}
+      </div>`;
+    }
 
     content.innerHTML = `
-      <div class="modal-header">
-        <div class="modal-meta">${formatDateShort(m.utcDate)} · ${stage}</div>
-        <div class="modal-teams">
-          <div class="modal-team">
-            <img class="modal-crest" src="${m.homeTeam.crest}" alt="${m.homeTeam.tla}" onerror="this.style.display='none'" />
-            <span class="modal-tla">${m.homeTeam.tla}</span>
-            <span class="modal-teamname">${m.homeTeam.shortName || m.homeTeam.name}</span>
-            <div class="modal-scorers-list">
-              ${homeGoals.map((g) => `<span>⚽ ${g.scorer?.name || 'Gol'} ${g.minute}'</span>`).join('')}
+      <!-- CABEÇALHO -->
+      <div class="md-head">
+        <div class="md-meta">${formatDateShort(m.utcDate)} · ${stage}</div>
+        <div class="md-scoreboard">
+          <div class="md-team">
+            <img class="md-crest" src="${m.homeTeam.crest}" alt="" onerror="this.style.display='none'" />
+            <span class="md-tla">${m.homeTeam.tla}</span>
+            <span class="md-fullname">${m.homeTeam.shortName || m.homeTeam.name}</span>
+          </div>
+          <div class="md-center">
+            <div class="md-ft">${ftH} : ${ftA}</div>
+            ${htH !== null && htH !== undefined ? `<div class="md-ht">Intervalo ${htH} : ${htA}</div>` : ''}
+          </div>
+          <div class="md-team md-team--away">
+            <img class="md-crest" src="${m.awayTeam.crest}" alt="" onerror="this.style.display='none'" />
+            <span class="md-tla">${m.awayTeam.tla}</span>
+            <span class="md-fullname">${m.awayTeam.shortName || m.awayTeam.name}</span>
+          </div>
+        </div>
+        ${m.venue ? `<div class="md-venue">📍 ${m.venue}</div>` : ''}
+      </div>
+
+      <!-- GOLS -->
+      ${goals.length ? `
+      <div class="md-section">
+        <div class="md-section-title">⚽ Gols</div>
+        <div class="md-goals">
+          <div class="md-goals-col">${homeGoals.map(goalItem).join('') || '<span class="md-none">—</span>'}</div>
+          <div class="md-goals-sep"></div>
+          <div class="md-goals-col md-goals-col--away">${awayGoals.map(goalItem).join('') || '<span class="md-none">—</span>'}</div>
+        </div>
+      </div>` : ''}
+
+      <!-- CARTÕES -->
+      ${bookings.length ? `
+      <div class="md-section">
+        <div class="md-section-title">🟨 Cartões</div>
+        <div class="md-cards-summary">
+          <div class="md-cards-team">
+            <span>${homeYellow > 0 ? `🟨 ×${homeYellow}` : ''} ${homeRed > 0 ? `🟥 ×${homeRed}` : ''}</span>
+            <div class="md-cards-list">${homeBookings.map((b) => `
+              <div class="md-card-item">
+                <span>${b.card === 'RED_CARD' ? '🟥' : '🟨'}</span>
+                <span class="md-card-player">${b.player?.name || '—'}</span>
+                <span class="md-card-min">${b.minute}'</span>
+              </div>`).join('')}
             </div>
           </div>
-          <div class="modal-score">
-            <span>${h}</span>
-            <span class="modal-score-sep">:</span>
-            <span>${a}</span>
-          </div>
-          <div class="modal-team modal-team--away">
-            <img class="modal-crest" src="${m.awayTeam.crest}" alt="${m.awayTeam.tla}" onerror="this.style.display='none'" />
-            <span class="modal-tla">${m.awayTeam.tla}</span>
-            <span class="modal-teamname">${m.awayTeam.shortName || m.awayTeam.name}</span>
-            <div class="modal-scorers-list">
-              ${awayGoals.map((g) => `<span>⚽ ${g.scorer?.name || 'Gol'} ${g.minute}'</span>`).join('')}
+          <div class="md-cards-team md-cards-team--away">
+            <span>${awayYellow > 0 ? `🟨 ×${awayYellow}` : ''} ${awayRed > 0 ? `🟥 ×${awayRed}` : ''}</span>
+            <div class="md-cards-list">${awayBookings.map((b) => `
+              <div class="md-card-item">
+                <span>${b.card === 'RED_CARD' ? '🟥' : '🟨'}</span>
+                <span class="md-card-player">${b.player?.name || '—'}</span>
+                <span class="md-card-min">${b.minute}'</span>
+              </div>`).join('')}
             </div>
           </div>
         </div>
-        ${m.venue ? `<div class="modal-venue">📍 ${m.venue}</div>` : ''}
-      </div>
+      </div>` : ''}
 
-      <div class="modal-events">
-        <div class="modal-events-title">Linha do Tempo</div>
-        ${events.length === 0 ? '<div class="modal-empty">Nenhum evento registrado</div>' : ''}
-        ${events.map((ev) => {
-          const isHome = ev.team?.id === m.homeTeam?.id;
-          if (ev.kind === 'goal') {
-            return `
-              <div class="modal-event ${isHome ? 'event--home' : 'event--away'}">
-                <span class="event-minute">${ev.minute}'</span>
-                <span class="event-icon">⚽</span>
-                <div class="event-info">
-                  <span class="event-player">${ev.scorer?.name || 'Gol'}</span>
-                  ${ev.assist?.name ? `<span class="event-sub">Assistência: ${ev.assist.name}</span>` : ''}
-                  ${ev.type === 'PENALTY' ? `<span class="event-sub">Pênalti</span>` : ''}
-                  ${ev.type === 'OWN_GOAL' ? `<span class="event-sub">Gol contra</span>` : ''}
-                </div>
-                <span class="event-team">${ev.team?.shortName || ev.team?.name || ''}</span>
-              </div>`;
-          } else {
-            const cardIcon = ev.card === 'RED_CARD' ? '🟥' : '🟨';
-            return `
-              <div class="modal-event ${isHome ? 'event--home' : 'event--away'}">
-                <span class="event-minute">${ev.minute}'</span>
-                <span class="event-icon">${cardIcon}</span>
-                <div class="event-info">
-                  <span class="event-player">${ev.player?.name || '—'}</span>
-                </div>
-                <span class="event-team">${ev.team?.shortName || ev.team?.name || ''}</span>
-              </div>`;
-          }
-        }).join('')}
-      </div>`;
+      <!-- SUBSTITUIÇÕES -->
+      ${subs.length ? `
+      <div class="md-section">
+        <div class="md-section-title">🔄 Substituições</div>
+        <div class="md-subs">
+          <div class="md-subs-col">
+            ${homeSubs.map((s) => `<div class="md-sub-item">
+              <span class="md-sub-min">${s.minute}'</span>
+              <span class="md-sub-in">▲ ${s.playerIn?.name || '—'}</span>
+              <span class="md-sub-out">▼ ${s.playerOut?.name || '—'}</span>
+            </div>`).join('')}
+          </div>
+          <div class="md-subs-col md-subs-col--away">
+            ${awaySubs.map((s) => `<div class="md-sub-item">
+              <span class="md-sub-min">${s.minute}'</span>
+              <span class="md-sub-in">▲ ${s.playerIn?.name || '—'}</span>
+              <span class="md-sub-out">▼ ${s.playerOut?.name || '—'}</span>
+            </div>`).join('')}
+          </div>
+        </div>
+      </div>` : ''}
+
+      ${!goals.length && !bookings.length && !subs.length ? `<div class="md-empty">Detalhes não disponíveis para esta partida</div>` : ''}
+    `;
   } catch (err) {
-    content.innerHTML = `<div class="modal-empty">Erro ao carregar detalhes</div>`;
+    content.innerHTML = `<div class="md-empty">Erro ao carregar detalhes</div>`;
   }
 }
 
