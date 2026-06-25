@@ -1,19 +1,11 @@
 const https = require('https');
 
-const BASE_HOST = 'v3.football.api-sports.io';
-const API_KEY   = process.env.API_FOOTBALL_KEY;
-// FIFA World Cup league ID in api-football is 1
-const WC_LEAGUE  = process.env.API_FOOTBALL_LEAGUE || 1;
-const WC_SEASON  = process.env.API_FOOTBALL_SEASON || 2026;
+const ESPN_HOST = 'site.api.espn.com';
+const ESPN_BASE = '/apis/site/v2/sports/soccer/fifa.world';
 
-function get(path) {
+function get(host, path) {
   return new Promise((resolve, reject) => {
-    const options = {
-      hostname: BASE_HOST,
-      path,
-      headers: { 'x-apisports-key': API_KEY },
-    };
-    https.get(options, (res) => {
+    https.get({ hostname: host, path }, (res) => {
       let data = '';
       res.on('data', (c) => (data += c));
       res.on('end', () => {
@@ -24,71 +16,84 @@ function get(path) {
   });
 }
 
-// Find the api-football fixture ID by home/away team name and UTC date string
-async function findFixtureId(homeTeam, awayTeam, utcDate) {
-  const date = utcDate.slice(0, 10); // "2026-06-20"
-  const data = await get(`/fixtures?date=${date}&league=${WC_LEAGUE}&season=${WC_SEASON}`);
-  const fixtures = data.response || [];
+// ESPN uses dates in format YYYYMMDD (US timezone offset)
+// We try the UTC date and also the day before to handle timezone gaps
+function dateStr(utcDate, offsetDays = 0) {
+  const d = new Date(utcDate);
+  d.setDate(d.getDate() + offsetDays);
+  return d.toISOString().slice(0, 10).replace(/-/g, '');
+}
 
-  // Match by team name (case-insensitive, partial match)
+async function findEspnEventId(homeTeam, awayTeam, utcDate) {
   const normalize = (s) => (s || '').toLowerCase().replace(/[^a-z]/g, '');
   const homeN = normalize(homeTeam);
   const awayN = normalize(awayTeam);
 
-  const match = fixtures.find((f) => {
-    const fh = normalize(f.teams?.home?.name);
-    const fa = normalize(f.teams?.away?.name);
-    return fh.includes(homeN) || homeN.includes(fh) ||
-           fa.includes(awayN) || awayN.includes(fa);
-  });
+  // Try the UTC date and the day before (ESPN uses US timezone)
+  const dates = [dateStr(utcDate, 0), dateStr(utcDate, -1)];
 
-  return match ? match.fixture.id : null;
+  for (const date of dates) {
+    const data = await get(ESPN_HOST, `${ESPN_BASE}/scoreboard?dates=${date}`);
+    const events = data.events || [];
+
+    const match = events.find((e) => {
+      const comps = e.competitions?.[0]?.competitors || [];
+      return comps.some((c) => {
+        const name = normalize(c.team?.displayName || c.team?.name || '');
+        return name.includes(homeN.slice(0, 5)) || homeN.includes(name.slice(0, 5)) ||
+               name.includes(awayN.slice(0, 5)) || awayN.includes(name.slice(0, 5));
+      });
+    });
+
+    if (match) return match.id;
+  }
+
+  return null;
 }
 
-async function getFixtureEvents(fixtureId) {
-  const data = await get(`/fixtures/events?fixture=${fixtureId}`);
-  return data.response || [];
-}
-
-// Returns { goals, bookings, substitutions } in football-data.org-compatible shape
 async function getMatchEvents(homeTeam, awayTeam, utcDate) {
-  const fixtureId = await findFixtureId(homeTeam, awayTeam, utcDate);
-  if (!fixtureId) return { goals: [], bookings: [], substitutions: [] };
+  const eventId = await findEspnEventId(homeTeam, awayTeam, utcDate);
+  if (!eventId) return { goals: [], bookings: [], substitutions: [] };
 
-  const events = await getFixtureEvents(fixtureId);
+  const data = await get(ESPN_HOST, `${ESPN_BASE}/summary?event=${eventId}`);
+  const keyEvents = data.keyEvents || [];
 
   const goals = [];
   const bookings = [];
   const substitutions = [];
 
-  for (const e of events) {
-    const minute = e.time?.elapsed;
-    const teamName = e.team?.name;
+  for (const e of keyEvents) {
+    const type = e.type?.type;
+    const minute = Math.floor((e.clock?.value || 0) / 60) || null;
+    const displayMin = e.clock?.displayValue || (minute ? `${minute}'` : '—');
+    const teamName = e.team?.displayName || '';
+    const participants = e.participants || [];
 
-    if (e.type === 'Goal') {
+    if (type === 'goal') {
+      const detail = (e.text || '').toLowerCase();
       goals.push({
-        minute,
+        minute: displayMin.replace("'", ''),
         team: { name: teamName },
-        scorer: { name: e.player?.name },
-        assist: e.assist?.name ? { name: e.assist.name } : null,
-        type: e.detail === 'Penalty' ? 'PENALTY'
-            : e.detail === 'Own Goal' ? 'OWN_GOAL'
+        scorer: { name: participants[0]?.athlete?.displayName || '—' },
+        assist: null,
+        type: detail.includes('penalty') ? 'PENALTY'
+            : detail.includes('own goal') ? 'OWN_GOAL'
             : 'REGULAR',
+        description: e.text || '',
       });
-    } else if (e.type === 'Card') {
+    } else if (type === 'yellow-card' || type === 'red-card' || type === 'yellow-red-card') {
       bookings.push({
-        minute,
+        minute: displayMin.replace("'", ''),
         team: { name: teamName },
-        player: { name: e.player?.name },
-        card: e.detail === 'Red Card' || e.detail === 'Second Yellow card'
-          ? 'RED_CARD' : 'YELLOW_CARD',
+        player: { name: participants[0]?.athlete?.displayName || '—' },
+        card: type === 'red-card' || type === 'yellow-red-card' ? 'RED_CARD' : 'YELLOW_CARD',
       });
-    } else if (e.type === 'subst') {
+    } else if (type === 'substitution') {
       substitutions.push({
-        minute,
+        minute: displayMin.replace("'", ''),
         team: { name: teamName },
-        playerOut: { name: e.player?.name },
-        playerIn:  { name: e.assist?.name },
+        playerIn:  { name: participants[0]?.athlete?.displayName || '—' },
+        playerOut: { name: participants[1]?.athlete?.displayName || '—' },
       });
     }
   }
