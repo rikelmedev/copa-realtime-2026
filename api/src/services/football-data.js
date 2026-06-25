@@ -68,7 +68,7 @@ async function getStandings() {
   return data.standings || [];
 }
 
-async function getScorers(limit = 15) {
+async function getScorers(limit = 20) {
   const data = await get(`/competitions/${COMPETITION_ID}/scorers?limit=${limit}`);
   return data.scorers || [];
 }
