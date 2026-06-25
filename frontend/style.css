@@ -1112,3 +1112,78 @@ img { display: inline-block; vertical-align: middle; }
   .match-card__score { font-size: 1.8rem; }
   .schedule-item { grid-template-columns: 60px 1fr 70px; }
 }
+
+@media (max-width: 480px) {
+  /* Tabs: allow horizontal scroll so no text clips */
+  .tabs-nav {
+    padding: 0 0.25rem;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .tabs-nav::-webkit-scrollbar { display: none; }
+  .tab-btn {
+    padding: 0.6rem 0.65rem;
+    font-size: 0.76rem;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  /* Main padding tighter */
+  .main-content { padding: 0.75rem; }
+
+  /* Hero: smaller score on very small screens */
+  .hero__score { font-size: 2rem; }
+  .hero__tla   { font-size: 1rem; }
+  .hero__crest { width: 36px; height: 36px; }
+  .hero__body  { gap: 0.5rem; }
+
+  /* Live match cards: single column */
+  .matches-grid { grid-template-columns: 1fr; }
+
+  /* Schedule: compress columns, truncate long team names */
+  .schedule-item {
+    grid-template-columns: 52px 1fr 58px;
+    gap: 0.35rem;
+    padding: 0.55rem 0.75rem;
+  }
+  .schedule-item__time  { font-size: 0.82rem; }
+  .schedule-item__teams { grid-template-columns: 1fr 46px 1fr; gap: 0.2rem; }
+  .schedule-item__team  { font-size: 0.74rem; }
+  .schedule-item__team span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 80px;
+  }
+  .schedule-item__score { font-size: 0.78rem; }
+  .schedule-item__status { font-size: 0.6rem; }
+
+  /* Standings: hide extra stat columns (GP, GC, SG) */
+  .standings-table th:nth-child(n+7),
+  .standings-table td:nth-child(n+7) { display: none; }
+  .standings-table { font-size: 0.78rem; }
+  .standings-table td { padding: 0.45rem 0.4rem; }
+
+  /* Modal: bottom-sheet style on mobile */
+  .modal-overlay {
+    align-items: flex-end;
+    padding: 0;
+  }
+  .modal {
+    border-radius: 16px 16px 0 0;
+    max-height: 92vh;
+    width: 100%;
+    max-width: 100%;
+  }
+  .md-head    { padding: 1rem 1rem 0.75rem; }
+  .md-section { padding: 0.75rem 1rem; }
+  .md-crest   { width: 40px; height: 40px; }
+  .md-tla     { font-size: 1.1rem; }
+  .md-fullname { font-size: 0.64rem; }
+  .md-ft      { font-size: 2.2rem; }
+  .md-scoreboard { gap: 0.5rem; }
+  .md-info-grid  { grid-template-columns: 1fr 1fr; }
+  .md-info-item  { padding: 0.6rem 0.75rem; }
+  .md-info-value { font-size: 0.75rem; }
+}
