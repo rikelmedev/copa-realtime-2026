@@ -234,36 +234,45 @@ img { display: inline-block; vertical-align: middle; }
 
 .hero {
   border-radius: 12px;
-  padding: 1.75rem 2rem;
-  position: relative;
   overflow: hidden;
   border: 1px solid var(--border);
   background: var(--surface-1);
+  position: relative;
 }
 
-.hero--live {
-  border-color: rgba(255,59,59,0.5);
-  background: linear-gradient(135deg, rgba(255,59,59,0.06) 0%, var(--surface-1) 60%);
-}
+.hero--live  { border-color: rgba(255,59,59,0.5); }
+.hero--upcoming { border-color: rgba(200,164,50,0.35); }
 
-.hero--upcoming {
-  background: linear-gradient(135deg, rgba(200,164,50,0.06) 0%, var(--surface-1) 60%);
-  border-color: rgba(200,164,50,0.3);
-}
-
-.hero__label {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.7rem;
+.hero__banner {
+  padding: 0.55rem 1.5rem;
+  font-size: 0.62rem;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.12em;
-  color: var(--text-3);
-  margin-bottom: 1.25rem;
+  letter-spacing: 0.15em;
+  text-align: center;
+  background: var(--surface-2);
+  border-bottom: 1px solid var(--border);
+  color: #C8A432;
 }
 
-.hero--live .hero__label { color: var(--live); }
+.hero--live .hero__banner {
+  color: var(--live);
+  background: rgba(255,59,59,0.07);
+  border-bottom-color: rgba(255,59,59,0.2);
+}
+
+.hero__inner {
+  padding: 1.75rem 2rem 1.25rem;
+  background: var(--surface-1);
+}
+
+.hero--live .hero__inner {
+  background: linear-gradient(135deg, rgba(255,59,59,0.05) 0%, var(--surface-1) 55%);
+}
+
+.hero--upcoming .hero__inner {
+  background: linear-gradient(135deg, rgba(200,164,50,0.05) 0%, var(--surface-1) 55%);
+}
 
 .hero__body {
   display: grid;
@@ -276,22 +285,20 @@ img { display: inline-block; vertical-align: middle; }
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.6rem;
   text-align: center;
 }
 
-.hero__team--away { align-items: center; }
-
 .hero__crest {
-  width: 56px;
-  height: 56px;
+  width: 72px;
+  height: 72px;
   object-fit: contain;
-  filter: drop-shadow(0 4px 12px rgba(0,0,0,0.4));
+  filter: drop-shadow(0 6px 16px rgba(0,0,0,0.45));
 }
 
 .hero__tla {
   font-family: 'Oswald', sans-serif;
-  font-size: 1.4rem;
+  font-size: 1.7rem;
   font-weight: 700;
   letter-spacing: 0.05em;
 }
@@ -305,7 +312,19 @@ img { display: inline-block; vertical-align: middle; }
   display: flex;
   flex-direction: column;
   align-items: center;
+  gap: 0.35rem;
+}
+
+.hero__live-badge {
+  display: flex;
+  align-items: center;
   gap: 0.4rem;
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--live);
+  margin-bottom: 0.1rem;
 }
 
 .hero__score {
@@ -313,13 +332,13 @@ img { display: inline-block; vertical-align: middle; }
   align-items: center;
   gap: 0.5rem;
   font-family: 'Oswald', sans-serif;
-  font-size: 3.5rem;
+  font-size: 4.2rem;
   font-weight: 700;
   line-height: 1;
 }
 
 .hero__sep {
-  font-size: 2.5rem;
+  font-size: 2.8rem;
   color: var(--border-2);
   font-weight: 400;
 }
@@ -333,14 +352,14 @@ img { display: inline-block; vertical-align: middle; }
 
 .hero__vs {
   font-family: 'Oswald', sans-serif;
-  font-size: 1.8rem;
+  font-size: 2rem;
   font-weight: 700;
   color: var(--border-2);
 }
 
 .hero__time {
   font-family: 'Oswald', sans-serif;
-  font-size: 1.4rem;
+  font-size: 1.5rem;
   font-weight: 600;
   color: var(--text-1);
 }
@@ -356,18 +375,20 @@ img { display: inline-block; vertical-align: middle; }
 }
 
 .hero__venue {
-  margin-top: 1rem;
+  padding: 0.6rem 1.5rem;
   text-align: center;
-  font-size: 0.72rem;
+  font-size: 0.7rem;
   color: var(--text-3);
+  border-top: 1px solid var(--border);
+  background: var(--surface-2);
 }
 
 @media (max-width: 600px) {
-  .hero { padding: 1.25rem 1rem; }
-  .hero__crest { width: 40px; height: 40px; }
-  .hero__tla { font-size: 1.1rem; }
-  .hero__score { font-size: 2.5rem; }
-  .hero__body { gap: 0.75rem; }
+  .hero__inner  { padding: 1.25rem 1rem 1rem; }
+  .hero__crest  { width: 48px; height: 48px; }
+  .hero__tla    { font-size: 1.25rem; }
+  .hero__score  { font-size: 3rem; }
+  .hero__body   { gap: 0.75rem; }
 }
 
 /* ─── Match Cards (Live) ───────────────────────────────────────────────────── */

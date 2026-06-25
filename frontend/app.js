@@ -289,35 +289,39 @@ function renderHero(liveMatches, allMatches) {
 
   el.innerHTML = `
     <div class="hero ${isLive ? 'hero--live' : 'hero--upcoming'}">
-      <div class="hero__label">
-        ${isLive ? `<span class="live-dot"></span> AO VIVO` : `Copa do Mundo 2026 · ${stage}`}
+      <div class="hero__banner">
+        ${isLive
+          ? `<span class="live-dot"></span>&nbsp; AO VIVO · Copa do Mundo FIFA 2026`
+          : `Copa do Mundo FIFA 2026 · ${stage}`}
       </div>
-      <div class="hero__body">
-        <div class="hero__team">
-          <img class="hero__crest" src="${match.homeTeam.crest}" alt="${match.homeTeam.tla}" onerror="this.style.display='none'" />
-          <span class="hero__tla">${match.homeTeam.tla}</span>
-          <span class="hero__name">${match.homeTeam.shortName || match.homeTeam.name}</span>
-        </div>
+      <div class="hero__inner">
+        <div class="hero__body">
+          <div class="hero__team">
+            <img class="hero__crest" src="${match.homeTeam.crest}" alt="${match.homeTeam.tla}" onerror="this.style.display='none'" />
+            <span class="hero__tla">${match.homeTeam.tla}</span>
+            <span class="hero__name">${match.homeTeam.shortName || match.homeTeam.name}</span>
+          </div>
 
-        <div class="hero__center">
-          ${isLive ? `
-            <div class="hero__score">
-              <span>${h}</span>
-              <span class="hero__sep">:</span>
-              <span>${a}</span>
-            </div>
-            <div class="hero__minute">${match.minute || '—'}'</div>
-          ` : `
-            <div class="hero__vs">VS</div>
-            <div class="hero__time">${formatTime(match.utcDate)}</div>
-            <div class="hero__countdown" id="heroCountdown"></div>
-          `}
-        </div>
+          <div class="hero__center">
+            ${isLive ? `
+              <div class="hero__score">
+                <span>${h}</span>
+                <span class="hero__sep">:</span>
+                <span>${a}</span>
+              </div>
+              <div class="hero__minute">${match.minute || '—'}'</div>
+            ` : `
+              <div class="hero__vs">VS</div>
+              <div class="hero__time">${formatTime(match.utcDate)}</div>
+              <div class="hero__countdown" id="heroCountdown"></div>
+            `}
+          </div>
 
-        <div class="hero__team hero__team--away">
-          <img class="hero__crest" src="${match.awayTeam.crest}" alt="${match.awayTeam.tla}" onerror="this.style.display='none'" />
-          <span class="hero__tla">${match.awayTeam.tla}</span>
-          <span class="hero__name">${match.awayTeam.shortName || match.awayTeam.name}</span>
+          <div class="hero__team hero__team--away">
+            <img class="hero__crest" src="${match.awayTeam.crest}" alt="${match.awayTeam.tla}" onerror="this.style.display='none'" />
+            <span class="hero__tla">${match.awayTeam.tla}</span>
+            <span class="hero__name">${match.awayTeam.shortName || match.awayTeam.name}</span>
+          </div>
         </div>
       </div>
       ${match.venue ? `<div class="hero__venue">📍 ${match.venue}</div>` : ''}
