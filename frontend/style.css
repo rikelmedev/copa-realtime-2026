@@ -182,6 +182,53 @@ img { display: inline-block; vertical-align: middle; }
   border-radius: var(--radius);
 }
 
+/* ─── Stats Bar ────────────────────────────────────────────────────────────── */
+.stats-bar {
+  display: flex;
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  margin-bottom: 1.5rem;
+}
+
+.stats-bar:empty { display: none; }
+
+.stats-bar__item {
+  flex: 1;
+  padding: 0.75rem 0;
+  text-align: center;
+  border-right: 1px solid var(--border);
+  transition: background var(--transition);
+}
+
+.stats-bar__item:last-child { border-right: none; }
+.stats-bar__item:hover { background: var(--surface-2); }
+
+.stats-bar__num {
+  font-family: 'Oswald', sans-serif;
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--gold);
+  display: block;
+  line-height: 1;
+}
+
+.stats-bar__lbl {
+  font-size: 0.56rem;
+  color: var(--text-3);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  display: block;
+  margin-top: 4px;
+}
+
+@media (max-width: 480px) {
+  .stats-bar__num { font-size: 1.1rem; }
+  .stats-bar__lbl { font-size: 0.5rem; }
+  .stats-bar__item { padding: 0.6rem 0; }
+}
+
 /* ─── Hero Card ────────────────────────────────────────────────────────────── */
 #hero { margin-bottom: 1.5rem; }
 

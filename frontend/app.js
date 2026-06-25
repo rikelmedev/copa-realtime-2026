@@ -236,6 +236,31 @@ function renderScorers(scorers) {
     </div>`;
 }
 
+// ─── Stats Bar ───────────────────────────────────────────────────────────────
+function renderStats(allData) {
+  const el = document.getElementById('statsBar');
+  if (!el || !allData.length) return;
+
+  const finished = allData.filter((m) => m.status === 'FINISHED');
+  const played = finished.length;
+  const goals = finished.reduce((sum, m) => {
+    return sum + (m.score?.fullTime?.home ?? 0) + (m.score?.fullTime?.away ?? 0);
+  }, 0);
+  const avg = played ? (goals / played).toFixed(1) : '—';
+  const teams = new Set();
+  allData.forEach((m) => {
+    if (m.homeTeam?.name) teams.add(m.homeTeam.name);
+    if (m.awayTeam?.name) teams.add(m.awayTeam.name);
+  });
+
+  el.innerHTML = `
+    <div class="stats-bar__item"><span class="stats-bar__num">${played}</span><span class="stats-bar__lbl">Partidas</span></div>
+    <div class="stats-bar__item"><span class="stats-bar__num">${goals}</span><span class="stats-bar__lbl">Gols</span></div>
+    <div class="stats-bar__item"><span class="stats-bar__num">${avg}</span><span class="stats-bar__lbl">Gols/jogo</span></div>
+    <div class="stats-bar__item"><span class="stats-bar__num">${teams.size}</span><span class="stats-bar__lbl">Seleções</span></div>
+  `;
+}
+
 // ─── Hero Card ────────────────────────────────────────────────────────────────
 let countdownInterval = null;
 
@@ -345,6 +370,7 @@ async function loadAll() {
     liveData.forEach((m) => { matchCache[m.id] = m; });
 
     renderHero(liveData, allData);
+    renderStats(allData);
     renderLiveMatches(liveData);
 
     const now = new Date();
