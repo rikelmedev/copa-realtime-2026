@@ -120,6 +120,7 @@ function renderSchedule(matches, containerId) {
         const a = m.score?.fullTime?.away ?? m.score?.halfTime?.away;
         const hasScore = h !== null && h !== undefined;
         const statusCls = finished ? 'status--finished' : live ? 'status--live' : 'status--scheduled';
+        const groupLabel = m.group ? `Grupo ${m.group.replace('GROUP_', '')}` : (m.stage === 'ROUND_OF_16' ? 'Oitavas' : m.stage === 'QUARTER_FINALS' ? 'Quartas' : m.stage === 'SEMI_FINALS' ? 'Semi' : m.stage === 'FINAL' ? 'Final' : '');
         return `
           <div class="schedule-item ${live ? 'schedule-item--live' : ''} ${finished || live ? 'schedule-item--clickable' : ''}" ${finished || live ? `onclick="openMatchModal(${m.id})"` : ''}>
             <div class="schedule-item__time">${live ? `<span class="live-dot"></span>` : ''}${formatTime(m.utcDate)}</div>
@@ -136,7 +137,10 @@ function renderSchedule(matches, containerId) {
                 ${crestImg(m.awayTeam.crest, m.awayTeam.tla)}
               </div>
             </div>
-            <div class="schedule-item__status ${statusCls}">${statusLabel(m.status, m.minute)}</div>
+            <div class="schedule-item__right">
+              ${groupLabel ? `<span class="schedule-item__group">${groupLabel}</span>` : ''}
+              <span class="schedule-item__status ${statusCls}">${statusLabel(m.status, m.minute)}</span>
+            </div>
           </div>`;
       }).join('')}
     </div>`).join('');

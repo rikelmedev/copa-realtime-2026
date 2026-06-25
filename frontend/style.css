@@ -602,6 +602,13 @@ img { display: inline-block; vertical-align: middle; }
   color: var(--text-3);
 }
 
+.schedule-item__right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.3rem;
+}
+
 .schedule-item__status {
   font-size: 0.68rem;
   font-weight: 600;
@@ -613,6 +620,18 @@ img { display: inline-block; vertical-align: middle; }
 .status--live     { color: var(--live); }
 .status--finished { color: var(--text-3); }
 .status--scheduled { color: var(--text-3); }
+
+.schedule-item__group {
+  font-size: 0.58rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #C8A432;
+  background: rgba(200,164,50,0.1);
+  border: 1px solid rgba(200,164,50,0.22);
+  padding: 0.15rem 0.45rem;
+  border-radius: 4px;
+}
 
 /* ─── Standings ────────────────────────────────────────────────────────────── */
 .standings-container {
