@@ -178,8 +178,10 @@ function renderStandings(standings) {
             </tr>
           </thead>
           <tbody>
-            ${group.table.map((row) => `
-              <tr class="${row.position <= 2 ? 'tr--qualified' : ''}">
+            ${group.table.map((row) => {
+                const zoneCls = row.position <= 2 ? 'tr--qualified' : row.position === 3 ? 'tr--maybe' : 'tr--eliminated';
+                return `
+              <tr class="${zoneCls}">
                 <td class="td-pos">${row.position}</td>
                 <td class="td-team">
                   ${crestImg(row.team.crest, row.team.tla)}
@@ -196,9 +198,15 @@ function renderStandings(standings) {
                   ${row.goalDifference > 0 ? '+' : ''}${row.goalDifference}
                 </td>
                 <td class="td-pts">${row.points}</td>
-              </tr>`).join('')}
+              </tr>`;
+              }).join('')}
           </tbody>
         </table>
+        <div class="standings-legend">
+          <div class="standings-legend__item"><div class="standings-legend__dot" style="background:#22C55E"></div>Classificado às oitavas</div>
+          <div class="standings-legend__item"><div class="standings-legend__dot" style="background:#C8A432"></div>Possível classificação (melhor 3º)</div>
+          <div class="standings-legend__item"><div class="standings-legend__dot" style="background:#EF4444"></div>Eliminado</div>
+        </div>
       </div>`;
   }).join('');
 }

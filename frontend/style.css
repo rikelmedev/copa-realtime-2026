@@ -690,6 +690,38 @@ img { display: inline-block; vertical-align: middle; }
   border-left: 3px solid #22C55E;
 }
 
+.standings-table tbody tr.tr--maybe {
+  border-left: 3px solid #C8A432;
+}
+
+.standings-table tbody tr.tr--eliminated {
+  border-left: 3px solid #EF4444;
+}
+
+.standings-legend {
+  display: flex;
+  gap: 1rem;
+  padding: 0.5rem 1rem;
+  border-top: 1px solid var(--border);
+  background: var(--surface-2);
+  flex-wrap: wrap;
+}
+
+.standings-legend__item {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.62rem;
+  color: var(--text-3);
+}
+
+.standings-legend__dot {
+  width: 3px;
+  height: 14px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
 .standings-table td {
   padding: 0.55rem 0.6rem;
   text-align: center;
