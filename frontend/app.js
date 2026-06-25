@@ -68,7 +68,7 @@ function renderLiveMatches(matches) {
     const a = m.score?.fullTime?.away ?? m.score?.halfTime?.away ?? 0;
     const min = m.minute || '';
     return `
-      <div class="match-card match-card--live" data-id="${m.id}">
+      <div class="match-card match-card--live schedule-item--clickable" data-id="${m.id}" onclick="openMatchModal(${m.id})">
         <div class="match-card__header">
           <span class="match-card__status--live"><span class="live-dot"></span> ${statusLabel(m.status, min)}</span>
           <span class="match-card__venue">${m.venue || ''}</span>
@@ -121,7 +121,7 @@ function renderSchedule(matches, containerId) {
         const hasScore = h !== null && h !== undefined;
         const statusCls = finished ? 'status--finished' : live ? 'status--live' : 'status--scheduled';
         return `
-          <div class="schedule-item ${live ? 'schedule-item--live' : ''} ${finished ? 'schedule-item--clickable' : ''}" ${finished ? `onclick="openMatchModal(${m.id})"` : ''}>
+          <div class="schedule-item ${live ? 'schedule-item--live' : ''} ${finished || live ? 'schedule-item--clickable' : ''}" ${finished || live ? `onclick="openMatchModal(${m.id})"` : ''}>
             <div class="schedule-item__time">${live ? `<span class="live-dot"></span>` : ''}${formatTime(m.utcDate)}</div>
             <div class="schedule-item__teams">
               <div class="schedule-item__team">
@@ -366,16 +366,28 @@ async function loadAll() {
 }
 
 // ─── Match Detail Modal ───────────────────────────────────────────────────────
+let modalRefreshInterval = null;
+
 function closeModal(e) {
-  if (e.target.id === 'matchModal') document.getElementById('matchModal').classList.remove('show');
+  if (e.target.id === 'matchModal') {
+    document.getElementById('matchModal').classList.remove('show');
+    if (modalRefreshInterval) { clearInterval(modalRefreshInterval); modalRefreshInterval = null; }
+  }
 }
+
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelector('.modal__close')?.addEventListener('click', () => {
+    if (modalRefreshInterval) { clearInterval(modalRefreshInterval); modalRefreshInterval = null; }
+  });
+});
 
 async function openMatchModal(matchId) {
   const modal = document.getElementById('matchModal');
   const content = document.getElementById('modalContent');
   modal.classList.add('show');
 
-  // Show cached header immediately while fetching detail
+  if (modalRefreshInterval) { clearInterval(modalRefreshInterval); modalRefreshInterval = null; }
+
   const cached = matchCache[matchId];
   if (!cached) {
     content.innerHTML = '<div class="modal-loading">Carregando detalhes...</div>';
@@ -480,6 +492,19 @@ async function openMatchModal(matchId) {
     const base = cached ? buildModalHead(cached) : '';
     content.innerHTML = base + `<div class="md-empty">Não foi possível carregar os eventos</div>`;
   }
+
+  // Auto-refresh every 30s if match is live
+  const isLive = cached?.status === 'IN_PLAY' || cached?.status === 'PAUSED';
+  if (isLive) {
+    modalRefreshInterval = setInterval(() => {
+      if (document.getElementById('matchModal').classList.contains('show')) {
+        openMatchModal(matchId);
+      } else {
+        clearInterval(modalRefreshInterval);
+        modalRefreshInterval = null;
+      }
+    }, 30000);
+  }
 }
 
 function buildModalHead(m) {
@@ -493,10 +518,13 @@ function buildModalHead(m) {
   const homeWon = winner === 'HOME_TEAM';
   const awayWon = winner === 'AWAY_TEAM';
   const mainRef = m.referees?.find((r) => r.type === 'REFEREE') || m.referees?.[0];
+  const matchIsLive = m.status === 'IN_PLAY' || m.status === 'PAUSED';
 
   return `
     <div class="md-head">
-      <div class="md-meta">${formatDate(m.utcDate)}${group} · ${stage}</div>
+      <div class="md-meta">
+        ${matchIsLive ? `<span class="md-live-badge"><span class="live-dot"></span> AO VIVO · ${m.minute || ''}' · atualiza em 30s</span>` : `${formatDate(m.utcDate)}${group} · ${stage}`}
+      </div>
       <div class="md-scoreboard">
         <div class="md-team ${homeWon ? 'md-team--winner' : ''}">
           <img class="md-crest" src="${m.homeTeam.crest}" alt="" onerror="this.style.display='none'" />

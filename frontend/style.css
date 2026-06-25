@@ -902,6 +902,16 @@ img { display: inline-block; vertical-align: middle; }
   margin-top: 0.3rem;
 }
 
+.md-live-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--live);
+  font-weight: 700;
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+}
+
 .md-team--winner .md-tla { color: var(--gold); }
 .md-team--winner .md-crest { filter: drop-shadow(0 2px 12px rgba(255,215,0,0.4)); }
 
