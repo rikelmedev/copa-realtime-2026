@@ -314,8 +314,9 @@ function renderHero(liveMatches, allMatches) {
   }
 }
 
-// ─── Match cache (populated by loadAll, used by modal) ───────────────────────
+// ─── Cache (modal + last good data para rate limit) ──────────────────────────
 let matchCache = {};
+let lastGoodData = { live: [], matches: [], standings: [], scorers: [] };
 
 // ─── Load All Data ────────────────────────────────────────────────────────────
 async function loadAll() {
@@ -327,8 +328,17 @@ async function loadAll() {
       fetchAPI('/api/scorers'),
     ]);
 
-    const liveData = live.status === 'fulfilled' ? live.value : [];
-    const allData  = allMatches.status === 'fulfilled' ? allMatches.value : [];
+    // Use new data if valid, otherwise fall back to last good data
+    const liveData     = live.status === 'fulfilled'       && live.value.length        ? live.value       : lastGoodData.live;
+    const allData      = allMatches.status === 'fulfilled' && allMatches.value.length  ? allMatches.value : lastGoodData.matches;
+    const standingsVal = standings.status === 'fulfilled'  && standings.value.length   ? standings.value  : lastGoodData.standings;
+    const scorersVal   = scorers.status === 'fulfilled'    && scorers.value.length     ? scorers.value    : lastGoodData.scorers;
+
+    // Update last good data only when we receive valid responses
+    if (live.status === 'fulfilled')       lastGoodData.live      = live.value;
+    if (allMatches.status === 'fulfilled' && allMatches.value.length) lastGoodData.matches   = allMatches.value;
+    if (standings.status === 'fulfilled'  && standings.value.length)  lastGoodData.standings = standings.value;
+    if (scorers.status === 'fulfilled'    && scorers.value.length)     lastGoodData.scorers   = scorers.value;
 
     // Cache matches for modal use
     allData.forEach((m) => { matchCache[m.id] = m; });
@@ -337,28 +347,23 @@ async function loadAll() {
     renderHero(liveData, allData);
     renderLiveMatches(liveData);
 
-    if (allMatches.status === 'fulfilled') {
-      const matches = allData;
-      const now = new Date();
+    const now = new Date();
+    const todayGames = allData.filter((m) => isToday(m.utcDate));
+    const upcoming = allData
+      .filter((m) => new Date(m.utcDate) > now && !isToday(m.utcDate) && m.homeTeam?.name && m.awayTeam?.name)
+      .slice(0, 40);
+    const recent = allData
+      .filter((m) => m.status === 'FINISHED')
+      .sort((a, b) => new Date(b.utcDate) - new Date(a.utcDate))
+      .slice(0, 20);
 
-      const todayGames = matches.filter((m) => isToday(m.utcDate));
-      const upcoming = matches
-        .filter((m) => new Date(m.utcDate) > now && !isToday(m.utcDate) && m.homeTeam?.name && m.awayTeam?.name)
-        .slice(0, 40);
-      const recent = matches
-        .filter((m) => m.status === 'FINISHED')
-        .sort((a, b) => new Date(b.utcDate) - new Date(a.utcDate))
-        .slice(0, 20);
+    renderSchedule(todayGames, 'todayMatches');
+    renderSchedule(upcoming, 'upcomingMatches');
+    renderSchedule(recent, 'recentMatches');
+    document.getElementById('section-today').style.display = todayGames.length ? '' : 'none';
 
-      renderSchedule(todayGames, 'todayMatches');
-      renderSchedule(upcoming, 'upcomingMatches');
-      renderSchedule(recent, 'recentMatches');
-
-      document.getElementById('section-today').style.display = todayGames.length ? '' : 'none';
-    }
-
-    if (standings.status === 'fulfilled') renderStandings(standings.value);
-    if (scorers.status === 'fulfilled')  renderScorers(scorers.value);
+    renderStandings(standingsVal);
+    renderScorers(scorersVal);
 
   } catch (err) {
     console.error('Erro ao carregar dados:', err);
