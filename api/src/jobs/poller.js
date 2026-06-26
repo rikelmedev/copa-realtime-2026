@@ -1,6 +1,7 @@
 const { getLiveMatches, getMatch, normalizeMatch } = require('../services/football-data');
 const { publisher } = require('../config/redis');
 const { getChannel } = require('../config/rabbitmq');
+const { clearCache } = require('../routes/data');
 
 const INTERVAL_MS = 30000;
 const state = {};
@@ -23,10 +24,12 @@ function detectChanges(matchId, fresh) {
   }
 
   if (fresh.score.a !== prev.score.a) {
+    clearCache('live');
     publish({ type: 'GOL', matchId, data: { time: 'A', score: fresh.score }, timestamp: new Date().toISOString() });
   }
 
   if (fresh.score.b !== prev.score.b) {
+    clearCache('live');
     publish({ type: 'GOL', matchId, data: { time: 'B', score: fresh.score }, timestamp: new Date().toISOString() });
   }
 

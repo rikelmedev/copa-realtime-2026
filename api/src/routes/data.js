@@ -74,4 +74,10 @@ router.get('/match-events', async (req, res) => {
   }
 });
 
+function clearCache(key) {
+  if (key) delete cache[key];
+  else Object.keys(cache).forEach((k) => delete cache[k]);
+}
+
+router.clearCache = clearCache;
 module.exports = router;
