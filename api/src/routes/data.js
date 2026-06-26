@@ -8,46 +8,43 @@ const {
   normalizeMatch,
 } = require('../services/football-data');
 
-router.get('/live', async (req, res) => {
-  try {
-    const matches = await getLiveMatches();
-    res.json(matches);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
+// ── Cache em memória no servidor ──────────────────────────────────────────────
+const cache = {};
+
+function cached(key, ttlMs, fetcher) {
+  return async (req, res) => {
+    const now = Date.now();
+    const hit = cache[key];
+    if (hit && now - hit.ts < ttlMs) {
+      return res.json(hit.data);
+    }
+    try {
+      const data = await fetcher();
+      cache[key] = { ts: now, data };
+      res.json(data);
+    } catch (err) {
+      // Se tiver dado em cache (mesmo expirado), serve ele em vez de erro
+      if (hit) return res.json(hit.data);
+      res.status(500).json({ error: err.message });
+    }
+  };
+}
+
+const TTL_LIVE      = 30  * 1000;  // 30s — jogos ao vivo
+const TTL_MATCHES   = 90  * 1000;  // 90s — partidas
+const TTL_STANDINGS = 120 * 1000;  // 2min — classificação
+const TTL_SCORERS   = 300 * 1000;  // 5min — artilheiros
+// ─────────────────────────────────────────────────────────────────────────────
+
+router.get('/live',      cached('live',      TTL_LIVE,      getLiveMatches));
+router.get('/matches',   cached('matches',   TTL_MATCHES,   getAllMatches));
+router.get('/standings', cached('standings', TTL_STANDINGS, getStandings));
+router.get('/scorers',   cached('scorers',   TTL_SCORERS,   getScorers));
 
 router.get('/upcoming', async (req, res) => {
   try {
     const matches = await getUpcomingMatches();
     res.json(matches);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-router.get('/matches', async (req, res) => {
-  try {
-    const matches = await getAllMatches();
-    res.json(matches);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-router.get('/standings', async (req, res) => {
-  try {
-    const standings = await getStandings();
-    res.json(standings);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-router.get('/scorers', async (req, res) => {
-  try {
-    const scorers = await getScorers();
-    res.json(scorers);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
