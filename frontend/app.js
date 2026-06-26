@@ -268,7 +268,7 @@ function renderStats(allData) {
   el.innerHTML = `
     <div class="stats-bar__item"><span class="stats-bar__num">${played}</span><span class="stats-bar__lbl">Partidas</span></div>
     <div class="stats-bar__item"><span class="stats-bar__num">${goals}</span><span class="stats-bar__lbl">Gols</span></div>
-    <div class="stats-bar__item"><span class="stats-bar__num">${avg}</span><span class="stats-bar__lbl">Gols/jogo</span></div>
+    <div class="stats-bar__item"><span class="stats-bar__num">${avg}</span><span class="stats-bar__lbl">Média/jogo</span></div>
     <div class="stats-bar__item"><span class="stats-bar__num">${teams.size}</span><span class="stats-bar__lbl">Seleções</span></div>
   `;
 }
