@@ -157,7 +157,7 @@ function renderStandings(standings) {
 
   el.innerHTML = standings.map((group) => {
     const title = group.group
-      ? `Grupo ${group.group.replace('GROUP_', '')}`
+      ? `Grupo ${group.group.split(/[_\s]/).pop()}`
       : group.stage || 'Classificação';
     return `
       <div class="standings-group">
@@ -321,7 +321,7 @@ function renderHero(liveMatches, allMatches) {
                 <span class="hero__sep">:</span>
                 <span>${a}</span>
               </div>
-              <div class="hero__minute">${match.minute || '—'}'</div>
+              ${match.minute ? `<div class="hero__minute">${match.minute}'</div>` : ''}
             ` : `
               <div class="hero__vs">VS</div>
               <div class="hero__time">${formatTime(match.utcDate)}</div>
@@ -454,7 +454,16 @@ async function openMatchModal(matchId) {
     const bookings = events.bookings || [];
     const subs = events.substitutions || [];
     const homeName = (m.homeTeam?.name || '').toLowerCase();
-    const isHome = (e) => (e.team?.name || '').toLowerCase().includes(homeName.split(' ')[0]);
+    const awayName = (m.awayTeam?.name || '').toLowerCase();
+    const normalize = (s) => s.toLowerCase().replace(/[^a-z]/g, '');
+    const isHome = (e) => {
+      const t = normalize(e.team?.name || '');
+      const hWords = homeName.split(' ').map(normalize).filter(w => w.length > 2);
+      const aWords = awayName.split(' ').map(normalize).filter(w => w.length > 2);
+      const hScore = hWords.filter(w => t.includes(w)).length;
+      const aScore = aWords.filter(w => t.includes(w)).length;
+      return hScore >= aScore;
+    };
 
     const homeGoals    = goals.filter(isHome);
     const awayGoals    = goals.filter((g) => !isHome(g));
