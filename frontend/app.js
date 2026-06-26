@@ -655,6 +655,9 @@ socket.on('atualizacao', (event) => {
     setTimeout(() => overlay.classList.remove('show'), 3000);
     fetchAPI('/api/live').then(renderLiveMatches).catch(() => {});
   }
+  if (event.type === 'MATCH_START') {
+    fetchAPI('/api/live').then(renderLiveMatches).catch(() => {});
+  }
   loadAll();
 });
 

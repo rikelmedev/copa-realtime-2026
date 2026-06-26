@@ -19,6 +19,7 @@ function detectChanges(matchId, fresh) {
 
   if (!prev) {
     state[matchId] = fresh;
+    clearCache('live');
     publish({ type: 'MATCH_START', matchId, data: fresh, timestamp: new Date().toISOString() });
     return;
   }
