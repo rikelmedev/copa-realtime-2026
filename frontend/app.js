@@ -561,16 +561,20 @@ function buildModalHead(m) {
   const htA = m.score?.halfTime?.away;
   const stage = m.stage ? m.stage.replace(/_/g, ' ') : 'Copa do Mundo 2026';
   const group = m.group ? ` · Grupo ${m.group.replace('GROUP_', '')}` : '';
-  const winner = m.score?.winner;
+  const matchIsLive     = m.status === 'IN_PLAY' || m.status === 'PAUSED';
+  const matchIsFinished = m.status === 'FINISHED';
+  const winner  = matchIsFinished ? m.score?.winner : null;
   const homeWon = winner === 'HOME_TEAM';
   const awayWon = winner === 'AWAY_TEAM';
   const mainRef = m.referees?.find((r) => r.type === 'REFEREE') || m.referees?.[0];
-  const matchIsLive = m.status === 'IN_PLAY' || m.status === 'PAUSED';
+  const minute  = m.minute ? `${m.minute}'` : '';
 
   return `
     <div class="md-head">
       <div class="md-meta">
-        ${matchIsLive ? `<span class="md-live-badge"><span class="live-dot"></span> AO VIVO · ${m.minute || ''}' · atualiza em 30s</span>` : `${formatDate(m.utcDate)}${group} · ${stage}`}
+        ${matchIsLive
+          ? `<span class="md-live-badge"><span class="live-dot"></span> AO VIVO${minute ? ` · ${minute}` : ''} · atualiza em 30s</span>`
+          : `${formatDate(m.utcDate)}${group} · ${stage}`}
       </div>
       <div class="md-scoreboard">
         <div class="md-team ${homeWon ? 'md-team--winner' : ''}">
@@ -604,10 +608,10 @@ function buildModalHead(m) {
         <span class="md-info-label">Árbitro</span>
         <span class="md-info-value">${mainRef.name}${mainRef.nationality ? ` (${mainRef.nationality})` : ''}</span>
       </div>` : ''}
-      <div class="md-info-item">
+      ${matchIsFinished ? `<div class="md-info-item">
         <span class="md-info-label">Resultado</span>
         <span class="md-info-value">${winner === 'HOME_TEAM' ? `Vitória ${m.homeTeam.tla}` : winner === 'AWAY_TEAM' ? `Vitória ${m.awayTeam.tla}` : 'Empate'}</span>
-      </div>
+      </div>` : ''}
     </div>`;
 }
 
