@@ -1305,4 +1305,29 @@ img { display: inline-block; vertical-align: middle; }
   .md-info-grid  { grid-template-columns: 1fr 1fr; }
   .md-info-item  { padding: 0.6rem 0.75rem; }
   .md-info-value { font-size: 0.75rem; }
+
+  /* Badge do grupo: menor em telas pequenas */
+  .schedule-item__group {
+    font-size: 0.5rem;
+    padding: 0.1rem 0.3rem;
+    letter-spacing: 0.04em;
+  }
+
+  /* Legenda das zonas: mais compacta */
+  .standings-legend {
+    gap: 0.5rem;
+    padding: 0.4rem 0.75rem;
+  }
+  .standings-legend__item { font-size: 0.58rem; }
+
+  /* Artilheiros: ajustes de fonte e padding */
+  .scorers-head,
+  .scorer-row {
+    padding: 0.5rem 0.75rem;
+  }
+  .scorer-name { font-size: 0.8rem; }
+  .scorer-nat  { font-size: 0.6rem; }
+  .scorer-goals { font-size: 0.95rem; }
+  .scorer-assists { font-size: 0.75rem; }
+  .scorer-rank { font-size: 0.85rem; }
 }
