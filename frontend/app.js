@@ -6,12 +6,14 @@ const WS_URL = window.location.hostname !== 'localhost'
 // ─── Utils ────────────────────────────────────────────────────────────────────
 function formatDate(utcDate) {
   const d = new Date(utcDate);
-  return d.toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long' });
+  const raw = d.toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long', timeZone: 'America/Sao_Paulo' });
+  return raw.charAt(0).toUpperCase() + raw.slice(1).toLowerCase();
 }
 
 function formatDateShort(utcDate) {
   const d = new Date(utcDate);
-  return d.toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit', month: 'short' });
+  const raw = d.toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit', month: 'short', timeZone: 'America/Sao_Paulo' });
+  return raw.charAt(0).toUpperCase() + raw.slice(1).toLowerCase();
 }
 
 function formatTime(utcDate) {
