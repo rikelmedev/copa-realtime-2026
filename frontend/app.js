@@ -661,6 +661,54 @@ socket.on('atualizacao', (event) => {
   loadAll();
 });
 
+// ─── Pull to Refresh ─────────────────────────────────────────────────────────
+(function () {
+  const THRESHOLD = 75;
+  let startY = 0, curY = 0, active = false, refreshing = false;
+  const el = document.getElementById('pullIndicator');
+  if (!el) return;
+
+  document.addEventListener('touchstart', (e) => {
+    if (refreshing) return;
+    startY = e.touches[0].clientY;
+    curY = startY;
+    active = false;
+  }, { passive: true });
+
+  document.addEventListener('touchmove', (e) => {
+    if (refreshing) return;
+    curY = e.touches[0].clientY;
+    if (window.scrollY > 5) return;
+    const pull = curY - startY;
+    if (pull <= 0) { active = false; return; }
+    active = true;
+    el.style.transition = 'none';
+    el.style.height = Math.min(pull * 0.55, 70) + 'px';
+    el.classList.toggle('pull--ready', pull >= THRESHOLD);
+  }, { passive: true });
+
+  document.addEventListener('touchend', async () => {
+    if (!active || refreshing) return;
+    const pull = curY - startY;
+    active = false;
+
+    if (pull >= THRESHOLD) {
+      refreshing = true;
+      el.classList.remove('pull--ready');
+      el.classList.add('pull--refreshing');
+      el.style.transition = 'height 0.2s ease';
+      el.style.height = '60px';
+      await loadAll();
+      await new Promise((r) => setTimeout(r, 400));
+      el.style.height = '0';
+      setTimeout(() => { el.classList.remove('pull--refreshing'); refreshing = false; }, 300);
+    } else {
+      el.style.transition = 'height 0.25s ease';
+      el.style.height = '0';
+    }
+  }, { passive: true });
+})();
+
 // ─── Skeletons ────────────────────────────────────────────────────────────────
 function renderSkeletons() {
   const sk = (w, h, extra = '') =>
