@@ -27,6 +27,15 @@ function isToday(utcDate) {
   return d.toLocaleDateString('pt-BR') === now.toLocaleDateString('pt-BR');
 }
 
+function stageLabel(stage) {
+  const map = {
+    GROUP_STAGE: 'Fase de Grupos', ROUND_OF_16: 'Oitavas de Final',
+    QUARTER_FINALS: 'Quartas de Final', SEMI_FINALS: 'Semifinal',
+    THIRD_PLACE: 'Disputa de 3º', FINAL: 'Final',
+  };
+  return map[stage] || (stage ? stage.replace(/_/g, ' ') : 'Copa do Mundo 2026');
+}
+
 function statusLabel(status, minute) {
   switch (status) {
     case 'IN_PLAY': return minute ? `${minute}'` : 'AO VIVO';
@@ -299,7 +308,7 @@ function renderHero(liveMatches, allMatches) {
   const a = match.score?.fullTime?.away ?? match.score?.halfTime?.away ?? 0;
   const matchDate = new Date(match.utcDate);
   const isLive = mode === 'live';
-  const stage = match.stage ? match.stage.replace(/_/g, ' ') : 'Copa do Mundo 2026';
+  const stage = stageLabel(match.stage);
 
   el.innerHTML = `
     <div class="hero ${isLive ? 'hero--live' : 'hero--upcoming'}">
@@ -570,7 +579,7 @@ function buildModalHead(m) {
   const ftA = m.score?.fullTime?.away ?? 0;
   const htH = m.score?.halfTime?.home;
   const htA = m.score?.halfTime?.away;
-  const stage = m.stage ? m.stage.replace(/_/g, ' ') : 'Copa do Mundo 2026';
+  const stage = stageLabel(m.stage);
   const group = m.group ? ` · Grupo ${m.group.replace('GROUP_', '')}` : '';
   const matchIsLive     = m.status === 'IN_PLAY' || m.status === 'PAUSED';
   const matchIsFinished = m.status === 'FINISHED';
