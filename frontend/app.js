@@ -661,6 +661,73 @@ socket.on('atualizacao', (event) => {
   loadAll();
 });
 
+// ─── Skeletons ────────────────────────────────────────────────────────────────
+function renderSkeletons() {
+  const sk = (w, h, extra = '') =>
+    `<div class="sk" style="width:${w};height:${h}px${extra ? ';' + extra : ''}"></div>`;
+
+  document.getElementById('hero').innerHTML = `
+    <div class="sk-hero">
+      <div class="sk-hero__banner"></div>
+      <div class="sk-hero__body">
+        <div class="sk-hero__team">
+          ${sk('72px', 72, 'border-radius:50%')}
+          ${sk('60px', 28)}
+          ${sk('80px', 12)}
+        </div>
+        <div class="sk-hero__center">
+          ${sk('130px', 64, 'border-radius:6px')}
+          ${sk('80px', 18)}
+        </div>
+        <div class="sk-hero__team">
+          ${sk('72px', 72, 'border-radius:50%')}
+          ${sk('60px', 28)}
+          ${sk('80px', 12)}
+        </div>
+      </div>
+      <div class="sk-hero__venue"></div>
+    </div>`;
+
+  const skScheduleRows = (n) => `
+    <div class="sk-schedule-wrap">
+      ${Array.from({ length: n }, () => `
+        <div class="sk-schedule-item">
+          ${sk('44px', 15)}
+          <div class="sk-teams">
+            ${sk('100%', 14)} ${sk('100%', 14, 'border-radius:6px')} ${sk('100%', 14)}
+          </div>
+          ${sk('48px', 12)}
+        </div>`).join('')}
+    </div>`;
+
+  ['todayMatches', 'upcomingMatches', 'recentMatches'].forEach((id) => {
+    document.getElementById(id).innerHTML = skScheduleRows(4);
+  });
+
+  const skStandingsGroup = `
+    <div class="sk-standings-group">
+      <div class="sk-standings-title"></div>
+      ${Array.from({ length: 4 }, () => `
+        <div class="sk-standings-row">
+          ${sk('20px', 14)} ${sk('120px', 14, 'flex:1')}
+          ${Array.from({ length: 5 }, () => sk('24px', 14)).join('')}
+        </div>`).join('')}
+    </div>`;
+  document.getElementById('standings').innerHTML = skStandingsGroup.repeat(3);
+
+  document.getElementById('scorers').innerHTML = `
+    <div class="scorers-container">
+      ${Array.from({ length: 8 }, () => `
+        <div class="sk-scorer-row">
+          ${sk('20px', 20, 'margin:0 auto')}
+          ${sk('100%', 16)}
+          ${sk('80px', 14)}
+          ${sk('24px', 20, 'margin:0 auto')}
+        </div>`).join('')}
+    </div>`;
+}
+
 // ─── Init ─────────────────────────────────────────────────────────────────────
+renderSkeletons();
 loadAll();
 setInterval(loadAll, 60000);
