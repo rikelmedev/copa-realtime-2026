@@ -649,10 +649,16 @@ socket.on('disconnect', () => {
 
 socket.on('atualizacao', (event) => {
   if (event.type === 'GOL') {
+    const { team, score, minute } = event.data || {};
+    document.getElementById('golOverlayTeam').textContent = team || '';
+    document.getElementById('golOverlayScore').textContent =
+      score ? `${score.a}  —  ${score.b}` : '';
+    document.getElementById('golOverlayMinute').textContent = minute ? `${minute}'` : '';
     const overlay = document.getElementById('golOverlay');
-    document.getElementById('golOverlaySub').textContent = event.data?.team || '';
+    overlay.classList.remove('show');
+    void overlay.offsetWidth;
     overlay.classList.add('show');
-    setTimeout(() => overlay.classList.remove('show'), 3000);
+    setTimeout(() => overlay.classList.remove('show'), 4000);
     fetchAPI('/api/live').then(renderLiveMatches).catch(() => {});
   }
   if (event.type === 'MATCH_START') {

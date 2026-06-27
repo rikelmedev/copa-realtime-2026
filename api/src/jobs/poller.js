@@ -26,12 +26,12 @@ function detectChanges(matchId, fresh) {
 
   if (fresh.score.a !== prev.score.a) {
     clearCache('live');
-    publish({ type: 'GOL', matchId, data: { time: 'A', score: fresh.score }, timestamp: new Date().toISOString() });
+    publish({ type: 'GOL', matchId, data: { time: 'A', team: fresh.teamA.name, score: fresh.score, minute: fresh.minute }, timestamp: new Date().toISOString() });
   }
 
   if (fresh.score.b !== prev.score.b) {
     clearCache('live');
-    publish({ type: 'GOL', matchId, data: { time: 'B', score: fresh.score }, timestamp: new Date().toISOString() });
+    publish({ type: 'GOL', matchId, data: { time: 'B', team: fresh.teamB.name, score: fresh.score, minute: fresh.minute }, timestamp: new Date().toISOString() });
   }
 
   state[matchId] = fresh;
