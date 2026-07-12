@@ -17,11 +17,26 @@
       <span class="top-bar__badge">FIFA</span>
       <span class="top-bar__name">Copa do Mundo 2026</span>
     </div>
+    <button id="favBtn" class="fav-btn" onclick="openFavPicker()">⭐ Meu Time</button>
     <div class="connection-status">
       <div class="connection-status__dot" id="connDot"></div>
       <span id="connectionLabel">Conectando...</span>
     </div>
   </header>
+
+  <!-- Favoritar Time Modal -->
+  <div id="favPicker" class="fav-picker" onclick="closeFavPickerOutside(event)">
+    <div class="fav-picker__box">
+      <div class="fav-picker__head">
+        <span>Escolher time favorito</span>
+        <button onclick="closeFavPicker()" style="background:none;border:none;color:var(--text-3);cursor:pointer;font-size:1.1rem">✕</button>
+      </div>
+      <div id="favPickerList" class="fav-picker__list"></div>
+      <div class="fav-picker__clear">
+        <button onclick="setFavTeam(null)">Remover favorito</button>
+      </div>
+    </div>
+  </div>
 
   <nav class="tabs-nav">
     <button class="tab-btn active" data-tab="jogos">⚽ Jogos</button>

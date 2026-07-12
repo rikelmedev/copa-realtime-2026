@@ -133,7 +133,7 @@ function renderSchedule(matches, containerId) {
         const statusCls = finished ? 'status--finished' : live ? 'status--live' : 'status--scheduled';
         const groupLabel = m.group ? `Grupo ${m.group.replace('GROUP_', '')}` : (m.stage === 'ROUND_OF_16' ? 'Oitavas' : m.stage === 'QUARTER_FINALS' ? 'Quartas' : m.stage === 'SEMI_FINALS' ? 'Semi' : m.stage === 'FINAL' ? 'Final' : '');
         return `
-          <div class="schedule-item ${live ? 'schedule-item--live' : ''} ${finished || live ? 'schedule-item--clickable' : ''}" ${finished || live ? `onclick="openMatchModal(${m.id})"` : ''}>
+          <div class="schedule-item ${live ? 'schedule-item--live' : ''} ${finished || live ? 'schedule-item--clickable' : ''} ${isFavMatch(m) ? 'schedule-item--fav' : ''}" ${finished || live ? `onclick="openMatchModal(${m.id})"` : ''}>
             <div class="schedule-item__time">${live ? `<span class="live-dot"></span>` : ''}${formatTime(m.utcDate)}</div>
             <div class="schedule-item__teams">
               <div class="schedule-item__team">
@@ -364,6 +364,64 @@ function renderHero(liveMatches, allMatches) {
     tick();
     countdownInterval = setInterval(tick, 1000);
   }
+}
+
+// ─── Favoritar Time ───────────────────────────────────────────────────────────
+let favTeam = JSON.parse(localStorage.getItem('copa_fav_team') || 'null');
+
+function isFavMatch(m) {
+  if (!favTeam) return false;
+  return m.homeTeam?.tla === favTeam.tla || m.awayTeam?.tla === favTeam.tla;
+}
+
+function updateFavBtn() {
+  const btn = document.getElementById('favBtn');
+  if (!btn) return;
+  if (favTeam) {
+    btn.innerHTML = `${crestImg(favTeam.crest, favTeam.tla)} ${favTeam.tla}`;
+    btn.classList.add('has-fav');
+  } else {
+    btn.innerHTML = '⭐ Meu Time';
+    btn.classList.remove('has-fav');
+  }
+}
+
+function openFavPicker() {
+  const picker = document.getElementById('favPicker');
+  const list = document.getElementById('favPickerList');
+  const teams = [];
+  const seen = new Set();
+  Object.values(matchCache || {}).forEach((m) => {
+    [m.homeTeam, m.awayTeam].forEach((t) => {
+      if (t?.tla && !seen.has(t.tla)) {
+        seen.add(t.tla);
+        teams.push(t);
+      }
+    });
+  });
+  teams.sort((a, b) => (a.shortName || a.name || '').localeCompare(b.shortName || b.name || ''));
+  list.innerHTML = teams.map((t) => `
+    <div class="fav-picker__team ${favTeam?.tla === t.tla ? 'selected' : ''}" onclick="setFavTeam(${JSON.stringify(JSON.stringify(t))})">
+      ${crestImg(t.crest, t.tla)}
+      <span>${t.shortName || t.name || t.tla}</span>
+    </div>`).join('');
+  picker.classList.add('show');
+}
+
+function closeFavPicker() {
+  document.getElementById('favPicker').classList.remove('show');
+}
+
+function closeFavPickerOutside(e) {
+  if (e.target === document.getElementById('favPicker')) closeFavPicker();
+}
+
+function setFavTeam(teamJson) {
+  favTeam = teamJson ? JSON.parse(teamJson) : null;
+  localStorage.setItem('copa_fav_team', JSON.stringify(favTeam));
+  closeFavPicker();
+  updateFavBtn();
+  loadAll();
 }
 
 // ─── Cache (modal + last good data para rate limit) ──────────────────────────
@@ -793,6 +851,7 @@ function renderSkeletons() {
 }
 
 // ─── Init ─────────────────────────────────────────────────────────────────────
+updateFavBtn();
 renderSkeletons();
 loadAll();
 setInterval(loadAll, 60000);
