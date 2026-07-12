@@ -2,7 +2,22 @@
 
 Placar em tempo real da Copa do Mundo 2026 com eventos ao vivo, classificação por grupos e artilheiros.
 
-🔗 **[Ver ao vivo](https://copa-realtime-2026.vercel.app)**
+🔗 **[Ver ao vivo](https://copa-realtime.vercel.app)**
+
+---
+
+## Preview
+
+![Tela principal](docs/screenshots/hero.png)
+
+<p align="center">
+  <img src="docs/screenshots/modal.png" alt="Modal de detalhes" width="48%" />
+  <img src="docs/screenshots/standings.png" alt="Classificação" width="48%" />
+</p>
+
+<p align="center">
+  <img src="docs/screenshots/mobile.png" alt="Mobile" width="30%" />
+</p>
 
 ---
 
