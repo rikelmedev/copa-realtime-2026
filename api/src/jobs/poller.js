@@ -1,9 +1,10 @@
-const { getLiveMatches, getMatch, normalizeMatch } = require('../services/football-data');
+const { getLiveMatches, normalizeMatch, COMPETITIONS } = require('../services/football-data');
 const { publisher } = require('../config/redis');
 const { getChannel } = require('../config/rabbitmq');
 const { clearCache } = require('../routes/data');
 
 const INTERVAL_MS = 30000;
+const POLL_DELAY_MS = 2000; // delay entre competições para respeitar rate limit
 const state = {};
 
 function publish(event) {
@@ -37,26 +38,28 @@ function detectChanges(matchId, fresh) {
   state[matchId] = fresh;
 }
 
-async function poll() {
+async function pollCompetition(comp) {
   try {
-    const matches = await getLiveMatches();
-
-    if (matches.length === 0) {
-      console.log('Poller: nenhuma partida ao vivo no momento.');
-      return;
-    }
-
+    const matches = await getLiveMatches(comp.id);
+    if (!matches.length) return;
     for (const match of matches) {
       const normalized = normalizeMatch(match);
       detectChanges(normalized.matchId, normalized);
     }
   } catch (err) {
-    console.error('Poller erro:', err.message);
+    console.error(`Poller erro (${comp.short}):`, err.message);
+  }
+}
+
+async function poll() {
+  for (const comp of COMPETITIONS) {
+    await pollCompetition(comp);
+    await new Promise((r) => setTimeout(r, POLL_DELAY_MS));
   }
 }
 
 function startPoller() {
-  console.log(`Poller iniciado — verificando a cada ${INTERVAL_MS / 1000}s`);
+  console.log(`Poller iniciado — ${COMPETITIONS.length} competições, intervalo ${INTERVAL_MS / 1000}s`);
   poll();
   setInterval(poll, INTERVAL_MS);
 }

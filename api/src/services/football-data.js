@@ -1,8 +1,15 @@
 const https = require('https');
 
-const BASE_URL = process.env.FOOTBALL_API_URL || 'https://api.football-data.org/v4';
 const API_KEY = process.env.FOOTBALL_API_KEY;
-const COMPETITION_ID = process.env.COMPETITION_ID || 2000;
+const DEFAULT_COMPETITION = parseInt(process.env.COMPETITION_ID || '2001', 10);
+
+const COMPETITIONS = [
+  { id: 2001, name: 'Champions League', short: 'UCL' },
+  { id: 2002, name: 'Europa League',    short: 'UEL' },
+  { id: 2021, name: 'Premier League',   short: 'PL'  },
+  { id: 2013, name: 'Brasileirão',      short: 'BSA' },
+  { id: 2152, name: 'Libertadores',     short: 'CLI' },
+];
 
 function get(path) {
   return new Promise((resolve, reject) => {
@@ -26,8 +33,8 @@ function get(path) {
   });
 }
 
-async function getLiveMatches() {
-  const data = await get(`/competitions/${COMPETITION_ID}/matches?status=LIVE`);
+async function getLiveMatches(competitionId = DEFAULT_COMPETITION) {
+  const data = await get(`/competitions/${competitionId}/matches?status=LIVE`);
   return data.matches || [];
 }
 
@@ -58,24 +65,28 @@ function normalizeMatch(match) {
   };
 }
 
-async function getUpcomingMatches(limit = 20) {
-  const data = await get(`/competitions/${COMPETITION_ID}/matches?status=SCHEDULED`);
+async function getUpcomingMatches(limit = 20, competitionId = DEFAULT_COMPETITION) {
+  const data = await get(`/competitions/${competitionId}/matches?status=SCHEDULED`);
   return (data.matches || []).slice(0, limit);
 }
 
-async function getStandings() {
-  const data = await get(`/competitions/${COMPETITION_ID}/standings`);
+async function getStandings(competitionId = DEFAULT_COMPETITION) {
+  const data = await get(`/competitions/${competitionId}/standings`);
   return data.standings || [];
 }
 
-async function getScorers(limit = 20) {
-  const data = await get(`/competitions/${COMPETITION_ID}/scorers?limit=${limit}`);
+async function getScorers(limit = 20, competitionId = DEFAULT_COMPETITION) {
+  const data = await get(`/competitions/${competitionId}/scorers?limit=${limit}`);
   return data.scorers || [];
 }
 
-async function getAllMatches() {
-  const data = await get(`/competitions/${COMPETITION_ID}/matches`);
+async function getAllMatches(competitionId = DEFAULT_COMPETITION) {
+  const data = await get(`/competitions/${competitionId}/matches`);
   return data.matches || [];
 }
 
-module.exports = { getLiveMatches, getMatch, normalizeMatch, getUpcomingMatches, getStandings, getScorers, getAllMatches };
+module.exports = {
+  getLiveMatches, getMatch, normalizeMatch,
+  getUpcomingMatches, getStandings, getScorers, getAllMatches,
+  COMPETITIONS,
+};

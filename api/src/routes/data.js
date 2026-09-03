@@ -1,49 +1,51 @@
 const router = require('express').Router();
 const {
-  getLiveMatches,
-  getUpcomingMatches,
-  getStandings,
-  getScorers,
-  getAllMatches,
-  normalizeMatch,
+  getLiveMatches, getUpcomingMatches, getStandings,
+  getScorers, getAllMatches, COMPETITIONS,
 } = require('../services/football-data');
 
-// ── Cache em memória no servidor ──────────────────────────────────────────────
+// ── Cache em memória ──────────────────────────────────────────────────────────
 const cache = {};
 
-function cached(key, ttlMs, fetcher) {
+function getCompetition(req) {
+  return parseInt(req.query.competition || COMPETITIONS[0].id, 10);
+}
+
+function cached(prefix, ttlMs, fetcher) {
   return async (req, res) => {
+    const cid = getCompetition(req);
+    const key = `${prefix}-${cid}`;
     const now = Date.now();
     const hit = cache[key];
-    if (hit && now - hit.ts < ttlMs) {
-      return res.json(hit.data);
-    }
+    if (hit && now - hit.ts < ttlMs) return res.json(hit.data);
     try {
-      const data = await fetcher();
+      const data = await fetcher(cid);
       cache[key] = { ts: now, data };
       res.json(data);
     } catch (err) {
-      // Se tiver dado em cache (mesmo expirado), serve ele em vez de erro
       if (hit) return res.json(hit.data);
       res.status(500).json({ error: err.message });
     }
   };
 }
 
-const TTL_LIVE      = 30  * 1000;  // 30s — jogos ao vivo
-const TTL_MATCHES   = 90  * 1000;  // 90s — partidas
-const TTL_STANDINGS = 120 * 1000;  // 2min — classificação
-const TTL_SCORERS   = 300 * 1000;  // 5min — artilheiros
+const TTL_LIVE      = 30  * 1000;
+const TTL_MATCHES   = 90  * 1000;
+const TTL_STANDINGS = 120 * 1000;
+const TTL_SCORERS   = 300 * 1000;
 // ─────────────────────────────────────────────────────────────────────────────
 
-router.get('/live',      cached('live',      TTL_LIVE,      getLiveMatches));
-router.get('/matches',   cached('matches',   TTL_MATCHES,   getAllMatches));
-router.get('/standings', cached('standings', TTL_STANDINGS, getStandings));
-router.get('/scorers',   cached('scorers',   TTL_SCORERS,   getScorers));
+router.get('/competitions', (req, res) => res.json(COMPETITIONS));
+
+router.get('/live',      cached('live',      TTL_LIVE,      (c) => getLiveMatches(c)));
+router.get('/matches',   cached('matches',   TTL_MATCHES,   (c) => getAllMatches(c)));
+router.get('/standings', cached('standings', TTL_STANDINGS, (c) => getStandings(c)));
+router.get('/scorers',   cached('scorers',   TTL_SCORERS,   (c) => getScorers(20, c)));
 
 router.get('/upcoming', async (req, res) => {
+  const cid = getCompetition(req);
   try {
-    const matches = await getUpcomingMatches();
+    const matches = await getUpcomingMatches(20, cid);
     res.json(matches);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -74,9 +76,12 @@ router.get('/match-events', async (req, res) => {
   }
 });
 
-function clearCache(key) {
-  if (key) delete cache[key];
-  else Object.keys(cache).forEach((k) => delete cache[k]);
+function clearCache(prefix) {
+  if (prefix) {
+    Object.keys(cache).filter((k) => k.startsWith(prefix)).forEach((k) => delete cache[k]);
+  } else {
+    Object.keys(cache).forEach((k) => delete cache[k]);
+  }
 }
 
 router.clearCache = clearCache;
