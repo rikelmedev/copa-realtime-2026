@@ -195,6 +195,44 @@ img { display: inline-block; vertical-align: middle; }
   background: rgba(200,164,50,0.04) !important;
 }
 
+/* ─── Competition Picker ────────────────────────────────────────────────────── */
+.competition-picker {
+  background: var(--surface-1);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.6rem 1.5rem;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.competition-picker::-webkit-scrollbar { display: none; }
+.competition-picker:empty { display: none; }
+
+.comp-pill {
+  flex-shrink: 0;
+  background: var(--surface-2);
+  border: 1px solid var(--border-2);
+  border-radius: 20px;
+  color: var(--text-2);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.8rem;
+  font-weight: 500;
+  padding: 0.35rem 0.9rem;
+  transition: background var(--transition), color var(--transition), border-color var(--transition);
+  white-space: nowrap;
+}
+.comp-pill:hover {
+  background: var(--surface-3);
+  color: var(--text-1);
+}
+.comp-pill--active {
+  background: #1a2a4a;
+  border-color: #3b82f6;
+  color: #93c5fd;
+}
+
 /* ─── Tabs Nav ─────────────────────────────────────────────────────────────── */
 .tabs-nav {
   background: var(--surface-1);

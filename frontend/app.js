@@ -3,6 +3,10 @@ const WS_URL = window.location.hostname !== 'localhost'
   ? 'https://impartial-gratitude-production-3dfe.up.railway.app'
   : 'http://localhost:3001';
 
+// ─── Competição selecionada ───────────────────────────────────────────────────
+let competitions = [];
+let currentCompetition = null;
+
 // ─── Utils ────────────────────────────────────────────────────────────────────
 function formatDate(utcDate) {
   const d = new Date(utcDate);
@@ -33,7 +37,7 @@ function stageLabel(stage) {
     QUARTER_FINALS: 'Quartas de Final', SEMI_FINALS: 'Semifinal',
     THIRD_PLACE: 'Disputa de 3º', FINAL: 'Final',
   };
-  return map[stage] || (stage ? stage.replace(/_/g, ' ') : 'Copa do Mundo 2026');
+  return map[stage] || (stage ? stage.replace(/_/g, ' ') : '');
 }
 
 function statusLabel(status, minute) {
@@ -57,6 +61,30 @@ async function fetchAPI(path) {
   const res = await fetch(`${API_URL}${path}`);
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   return res.json();
+}
+
+function apiPath(path) {
+  if (!currentCompetition) return path;
+  const sep = path.includes('?') ? '&' : '?';
+  return `${path}${sep}competition=${currentCompetition.id}`;
+}
+
+// ─── Seletor de Competição ───────────────────────────────────────────────────
+function renderCompetitionPicker() {
+  const el = document.getElementById('competitionPicker');
+  if (!el || !competitions.length) return;
+  el.innerHTML = competitions.map((c) => `
+    <button
+      class="comp-pill ${currentCompetition?.id === c.id ? 'comp-pill--active' : ''}"
+      onclick="selectCompetition(${c.id})"
+    >${c.name}</button>
+  `).join('');
+}
+
+function selectCompetition(id) {
+  currentCompetition = competitions.find((c) => c.id === id) || competitions[0];
+  renderCompetitionPicker();
+  loadAll();
 }
 
 // ─── Live Matches ─────────────────────────────────────────────────────────────
@@ -314,8 +342,8 @@ function renderHero(liveMatches, allMatches) {
     <div class="hero ${isLive ? 'hero--live' : 'hero--upcoming'}">
       <div class="hero__banner">
         ${isLive
-          ? `<span class="live-dot"></span>&nbsp; AO VIVO · Copa do Mundo FIFA 2026`
-          : `Copa do Mundo FIFA 2026 · ${stage}`}
+          ? `<span class="live-dot"></span>&nbsp; AO VIVO · ${currentCompetition?.name || ''}`
+          : `${currentCompetition?.name || ''}${stage ? ' · ' + stage : ''}`}
       </div>
       <div class="hero__inner">
         <div class="hero__body">
@@ -432,10 +460,10 @@ let lastGoodData = { live: [], matches: [], standings: [], scorers: [] };
 async function loadAll() {
   try {
     const [live, allMatches, standings, scorers] = await Promise.allSettled([
-      fetchAPI('/api/live'),
-      fetchAPI('/api/matches'),
-      fetchAPI('/api/standings'),
-      fetchAPI('/api/scorers'),
+      fetchAPI(apiPath('/api/live')),
+      fetchAPI(apiPath('/api/matches')),
+      fetchAPI(apiPath('/api/standings')),
+      fetchAPI(apiPath('/api/scorers')),
     ]);
 
     // Use new data if valid, otherwise fall back to last good data
@@ -853,5 +881,22 @@ function renderSkeletons() {
 // ─── Init ─────────────────────────────────────────────────────────────────────
 updateFavBtn();
 renderSkeletons();
-loadAll();
+
+(async function init() {
+  try {
+    competitions = await fetchAPI('/api/competitions');
+  } catch {
+    competitions = [
+      { id: 2001, name: 'Champions League', short: 'UCL' },
+      { id: 2002, name: 'Europa League',    short: 'UEL' },
+      { id: 2021, name: 'Premier League',   short: 'PL'  },
+      { id: 2013, name: 'Brasileirão',      short: 'BSA' },
+      { id: 2152, name: 'Libertadores',     short: 'CLI' },
+    ];
+  }
+  currentCompetition = competitions[0];
+  renderCompetitionPicker();
+  loadAll();
+})();
+
 setInterval(loadAll, 60000);
