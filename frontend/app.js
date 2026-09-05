@@ -70,15 +70,27 @@ function apiPath(path) {
 }
 
 // ─── Seletor de Competição ───────────────────────────────────────────────────
+const COMP_COLORS = {
+  2001: '#4d9fff',  // Champions League — azul UEFA
+  2002: '#ff7a1a',  // Europa League — laranja
+  2021: '#b44fff',  // Premier League — roxo
+  2013: '#22c55e',  // Brasileirão — verde
+  2152: '#f5c518',  // Libertadores — ouro
+};
+
 function renderCompetitionPicker() {
   const el = document.getElementById('competitionPicker');
   if (!el || !competitions.length) return;
-  el.innerHTML = competitions.map((c) => `
-    <button
-      class="comp-pill ${currentCompetition?.id === c.id ? 'comp-pill--active' : ''}"
-      onclick="selectCompetition(${c.id})"
-    >${c.name}</button>
-  `).join('');
+  el.innerHTML = competitions.map((c) => {
+    const color = COMP_COLORS[c.id] || '#3b82f6';
+    const isActive = currentCompetition?.id === c.id;
+    return `
+      <button
+        class="comp-pill ${isActive ? 'comp-pill--active' : ''}"
+        style="--comp-color:${color}"
+        onclick="selectCompetition(${c.id})"
+      >${c.name}</button>`;
+  }).join('');
 }
 
 function selectCompetition(id) {

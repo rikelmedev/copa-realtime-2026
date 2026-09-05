@@ -225,6 +225,7 @@ img { display: inline-block; vertical-align: middle; }
 .competition-picker:empty { display: none; }
 
 .comp-pill {
+  --comp-color: #3b82f6;
   flex-shrink: 0;
   background: var(--surface-2);
   border: 1px solid var(--border-2);
@@ -235,17 +236,19 @@ img { display: inline-block; vertical-align: middle; }
   font-size: 0.8rem;
   font-weight: 500;
   padding: 0.35rem 0.9rem;
-  transition: background var(--transition), color var(--transition), border-color var(--transition);
+  transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
   white-space: nowrap;
 }
 .comp-pill:hover {
-  background: var(--surface-3);
+  background: color-mix(in srgb, var(--comp-color) 10%, var(--surface-2));
+  border-color: color-mix(in srgb, var(--comp-color) 30%, transparent);
   color: var(--text-1);
 }
 .comp-pill--active {
-  background: #1a2a4a;
-  border-color: #3b82f6;
-  color: #93c5fd;
+  background: color-mix(in srgb, var(--comp-color) 14%, transparent);
+  border-color: color-mix(in srgb, var(--comp-color) 55%, transparent);
+  color: var(--comp-color);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--comp-color) 18%, transparent);
 }
 
 /* ─── Tabs Nav ─────────────────────────────────────────────────────────────── */
