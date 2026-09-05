@@ -16,6 +16,7 @@
   --green:     #22C55E;
   --radius:    8px;
   --transition: 0.25s ease;
+  --font-score: 'Barlow Condensed', 'Oswald', sans-serif;
 }
 
 html { scroll-behavior: smooth; }
@@ -653,11 +654,12 @@ img { display: inline-block; vertical-align: middle; }
   display: flex;
   align-items: center;
   gap: 0.4rem;
-  font-family: 'Oswald', sans-serif;
-  font-size: 4.8rem;
-  font-weight: 700;
+  font-family: var(--font-score);
+  font-size: 5rem;
+  font-weight: 800;
   line-height: 1;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.01em;
+  font-variant-numeric: tabular-nums;
 }
 .hero--live .hero__score {
   text-shadow: 0 0 60px rgba(255,59,59,0.3), 0 0 20px rgba(255,59,59,0.15);
@@ -820,10 +822,11 @@ img { display: inline-block; vertical-align: middle; }
 }
 
 .match-card__score {
-  font-family: 'Oswald', sans-serif;
-  font-size: 2.2rem;
-  font-weight: 700;
+  font-family: var(--font-score);
+  font-size: 2.4rem;
+  font-weight: 800;
   line-height: 1;
+  font-variant-numeric: tabular-nums;
   min-width: 1.5rem;
   text-align: center;
 }
@@ -929,8 +932,9 @@ img { display: inline-block; vertical-align: middle; }
 
 .schedule-item__score {
   text-align: center;
-  font-family: 'Oswald', sans-serif;
-  font-size: 0.85rem;
+  font-family: var(--font-score);
+  font-size: 0.9rem;
+  font-variant-numeric: tabular-nums;
   color: var(--text-3);
   display: flex;
   align-items: center;
@@ -939,7 +943,8 @@ img { display: inline-block; vertical-align: middle; }
 }
 
 .schedule-item__score.has-score {
-  font-size: 1rem;
+  font-size: 1.05rem;
+  font-weight: 800;
   color: var(--text-1);
   gap: 0.3rem;
 }
@@ -1355,10 +1360,11 @@ img { display: inline-block; vertical-align: middle; }
 .md-center { text-align: center; }
 
 .md-ft {
-  font-family: 'Oswald', sans-serif;
-  font-size: 3rem;
-  font-weight: 700;
+  font-family: var(--font-score);
+  font-size: 3.2rem;
+  font-weight: 800;
   line-height: 1;
+  font-variant-numeric: tabular-nums;
   letter-spacing: 0.05em;
 }
 
