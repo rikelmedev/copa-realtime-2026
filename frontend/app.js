@@ -340,6 +340,8 @@ function renderHero(liveMatches, allMatches) {
 
   el.innerHTML = `
     <div class="hero ${isLive ? 'hero--live' : 'hero--upcoming'}">
+      ${match.homeTeam?.crest ? `<div class="hero__crest-bleed hero__crest-bleed--home" style="background-image:url('${match.homeTeam.crest}')"></div>` : ''}
+      ${match.awayTeam?.crest ? `<div class="hero__crest-bleed hero__crest-bleed--away" style="background-image:url('${match.awayTeam.crest}')"></div>` : ''}
       <div class="hero__banner">
         ${isLive
           ? `<span class="live-dot"></span>&nbsp; AO VIVO · ${currentCompetition?.name || ''}`

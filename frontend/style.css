@@ -523,22 +523,53 @@ img { display: inline-block; vertical-align: middle; }
 #hero { margin-bottom: 1.5rem; }
 
 .hero {
-  border-radius: 12px;
+  border-radius: 14px;
   overflow: hidden;
   border: 1px solid var(--border);
   background: var(--surface-1);
   position: relative;
+  transition: box-shadow 0.4s ease;
 }
 
-.hero--live  { border-color: rgba(255,59,59,0.5); }
-.hero--upcoming { border-color: rgba(200,164,50,0.35); }
+.hero--live {
+  border-color: transparent;
+  box-shadow:
+    0 0 0 1px rgba(255,59,59,0.4),
+    0 16px 56px rgba(255,59,59,0.14),
+    0 4px 16px rgba(0,0,0,0.5);
+}
+
+.hero--upcoming {
+  border-color: rgba(200,164,50,0.25);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.35);
+}
+
+/* Escudos "sangrando" atrás do card */
+.hero__crest-bleed {
+  position: absolute;
+  width: 260px;
+  height: 260px;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  opacity: 0.08;
+  filter: blur(28px) saturate(1.4);
+  pointer-events: none;
+  z-index: 0;
+  top: 50%;
+  transform: translateY(-50%);
+}
+.hero__crest-bleed--home { left: -50px; }
+.hero__crest-bleed--away { right: -50px; }
 
 .hero__banner {
-  padding: 0.55rem 1.5rem;
-  font-size: 0.62rem;
+  position: relative;
+  z-index: 1;
+  padding: 0.5rem 1.5rem;
+  font-size: 0.6rem;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.15em;
+  letter-spacing: 0.18em;
   text-align: center;
   background: var(--surface-2);
   border-bottom: 1px solid var(--border);
@@ -547,21 +578,28 @@ img { display: inline-block; vertical-align: middle; }
 
 .hero--live .hero__banner {
   color: var(--live);
-  background: rgba(255,59,59,0.07);
-  border-bottom-color: rgba(255,59,59,0.2);
+  background: rgba(255,59,59,0.06);
+  border-bottom-color: rgba(255,59,59,0.18);
 }
 
 .hero__inner {
-  padding: 1.75rem 2rem 1.25rem;
-  background: var(--surface-1);
+  position: relative;
+  z-index: 1;
+  padding: 2rem 2rem 1.5rem;
 }
 
 .hero--live .hero__inner {
-  background: linear-gradient(135deg, rgba(255,59,59,0.05) 0%, var(--surface-1) 55%);
+  background:
+    radial-gradient(ellipse at 12% 50%, rgba(255,59,59,0.13) 0%, transparent 58%),
+    radial-gradient(ellipse at 88% 50%, rgba(255,59,59,0.07) 0%, transparent 58%),
+    var(--surface-1);
 }
 
 .hero--upcoming .hero__inner {
-  background: linear-gradient(135deg, rgba(200,164,50,0.05) 0%, var(--surface-1) 55%);
+  background:
+    radial-gradient(ellipse at 12% 50%, rgba(200,164,50,0.1) 0%, transparent 58%),
+    radial-gradient(ellipse at 88% 50%, rgba(200,164,50,0.05) 0%, transparent 58%),
+    var(--surface-1);
 }
 
 .hero__body {
@@ -575,69 +613,85 @@ img { display: inline-block; vertical-align: middle; }
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.6rem;
+  gap: 0.65rem;
   text-align: center;
 }
 
 .hero__crest {
-  width: 72px;
-  height: 72px;
+  width: 80px;
+  height: 80px;
   object-fit: contain;
-  filter: drop-shadow(0 6px 16px rgba(0,0,0,0.45));
+  filter: drop-shadow(0 8px 24px rgba(0,0,0,0.55));
+  transition: transform 0.3s ease, filter 0.3s ease;
+}
+.hero__crest:hover {
+  transform: scale(1.06);
+  filter: drop-shadow(0 12px 32px rgba(0,0,0,0.65));
 }
 
 .hero__tla {
   font-family: 'Oswald', sans-serif;
-  font-size: 1.7rem;
+  font-size: 1.8rem;
   font-weight: 700;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.06em;
 }
 
 .hero__name {
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   color: var(--text-2);
+  letter-spacing: 0.01em;
 }
 
 .hero__center {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.35rem;
-}
-
-.hero__live-badge {
-  display: flex;
-  align-items: center;
   gap: 0.4rem;
-  font-size: 0.65rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: var(--live);
-  margin-bottom: 0.1rem;
 }
 
 .hero__score {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.4rem;
   font-family: 'Oswald', sans-serif;
-  font-size: 4.2rem;
+  font-size: 4.8rem;
   font-weight: 700;
   line-height: 1;
+  letter-spacing: -0.02em;
+}
+.hero--live .hero__score {
+  text-shadow: 0 0 60px rgba(255,59,59,0.3), 0 0 20px rgba(255,59,59,0.15);
 }
 
 .hero__sep {
-  font-size: 2.8rem;
+  font-size: 2.6rem;
   color: var(--border-2);
-  font-weight: 400;
+  font-weight: 300;
+  margin-top: -4px;
 }
 
+/* Minuto — estilo ticker de TV */
 .hero__minute {
-  font-size: 0.75rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  background: rgba(255,59,59,0.1);
+  border: 1px solid rgba(255,59,59,0.28);
+  border-radius: 4px;
+  padding: 0.18rem 0.55rem;
+  font-size: 0.7rem;
   font-weight: 700;
   color: var(--live);
-  letter-spacing: 0.05em;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.hero__minute::before {
+  content: '';
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--live);
+  animation: pulse 1.2s ease-in-out infinite;
 }
 
 .hero__vs {
@@ -649,9 +703,10 @@ img { display: inline-block; vertical-align: middle; }
 
 .hero__time {
   font-family: 'Oswald', sans-serif;
-  font-size: 1.5rem;
+  font-size: 1.6rem;
   font-weight: 600;
   color: var(--text-1);
+  letter-spacing: 0.02em;
 }
 
 .hero__countdown {
@@ -659,26 +714,30 @@ img { display: inline-block; vertical-align: middle; }
   font-size: 1rem;
   font-weight: 500;
   color: #C8A432;
-  letter-spacing: 0.05em;
-  min-width: 120px;
+  letter-spacing: 0.06em;
+  min-width: 130px;
   text-align: center;
 }
 
 .hero__venue {
-  padding: 0.6rem 1.5rem;
+  position: relative;
+  z-index: 1;
+  padding: 0.55rem 1.5rem;
   text-align: center;
-  font-size: 0.7rem;
+  font-size: 0.68rem;
   color: var(--text-3);
   border-top: 1px solid var(--border);
-  background: var(--surface-2);
+  background: rgba(0,0,0,0.2);
+  letter-spacing: 0.02em;
 }
 
 @media (max-width: 600px) {
-  .hero__inner  { padding: 1.25rem 1rem 1rem; }
-  .hero__crest  { width: 48px; height: 48px; }
-  .hero__tla    { font-size: 1.25rem; }
-  .hero__score  { font-size: 3rem; }
-  .hero__body   { gap: 0.75rem; }
+  .hero__inner        { padding: 1.5rem 1rem 1.25rem; }
+  .hero__crest        { width: 52px; height: 52px; }
+  .hero__tla          { font-size: 1.3rem; }
+  .hero__score        { font-size: 3.2rem; }
+  .hero__body         { gap: 0.75rem; }
+  .hero__crest-bleed  { opacity: 0.05; }
 }
 
 /* ─── Match Cards (Live) ───────────────────────────────────────────────────── */
